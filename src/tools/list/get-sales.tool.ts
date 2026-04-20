@@ -42,7 +42,7 @@ inputSchema: z.object({
       };
     }
 
-   if (!res.result || res.result.length === 0) {
+   if (!res.result) {
       return {
         content: [{ type: "text", text: "No sales found" }],
       };
@@ -56,7 +56,7 @@ inputSchema: z.object({
       type: "text",
       text: JSON.stringify(
         {
-          count: res.result.length,
+          count: res.result.row_count,
           data: res.result
         },
         null,
