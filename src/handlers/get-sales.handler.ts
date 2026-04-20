@@ -19,6 +19,9 @@ export async function getSalesHandler(input: {
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .execute("PRC_GET_MCP_DATA");
 
+      console.log(input);
+      
+
     return {
       result: result.recordsets,
       isError: false,
