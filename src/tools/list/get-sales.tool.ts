@@ -1,22 +1,25 @@
 import { z } from "zod";
 import { getSalesHandler } from "../../handlers/get-sales.handler";
+import { log } from "node:console";
 
 export const getSalesTool = {
   name: "get-sales",
   description:
     "Fetch sales between dates with optional filters: customer, entity, branch",
 
-  inputSchema: z.object({
-    fromDate: z.string(),
-    toDate: z.string(),
-    customer: z.string().optional(),
-    entity: z.string().optional(),
-    branch: z.string().optional(),
-  }),
+inputSchema: z.object({
+  fromDate: z.string().describe("Start date YYYY-MM-DD"),
+  toDate: z.string().describe("End date YYYY-MM-DD"),
+
+  entityId: z.number().optional().describe("Entity ID"),
+  branchId: z.number().optional().describe("Branch ID"),
+  customerId: z.number().optional().describe("Customer ID"),
+}),
 
   handler: async (input: any) => {
     const res = await getSalesHandler(input);
 
+     console.log("get-sales result:", res);
     if (res.isError) {
       return {
         content: [{ type: "text", text: `❌ ${res.error}` }],
@@ -29,26 +32,22 @@ export const getSalesTool = {
       };
     }
 
-    // 🔥 Format response (important for LLM later)
-    const summary = res.result
-      .map(
-        (r: any) =>
-          `📄 ${r.invoice_no} | ${r.invoice_date} | ${r.customer_name} | ${r.branch} | ₹${r.total_amount}`
-      )
-      .join("\n");
+   return {
 
-    const total = res.result.reduce(
-      (sum: number, r: any) => sum + r.total_amount,
-      0
-    );
-
-    return {
-      content: [
+   
+  content: [
+    {
+      type: "text",
+      text: JSON.stringify(
         {
-          type: "text",
-          text: `✅ ${res.result.length} sales found\n💰 Total: ₹${total}\n\n${summary}`,
+          count: res.result.length,
+          data: res.result
         },
-      ],
-    };
+        null,
+        2
+      ),
+    },
+  ],
+};
   },
 };
