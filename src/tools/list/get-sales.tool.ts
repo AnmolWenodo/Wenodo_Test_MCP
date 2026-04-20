@@ -5,7 +5,23 @@ import { log } from "node:console";
 export const getSalesTool = {
   name: "get-sales",
   description:
-    "Fetch sales between dates with optional filters: customer, entity, branch",
+    `
+Fetch sales data from the database.
+
+Use this tool whenever the user asks about:
+- sales
+- revenue
+- totals
+- invoices
+- transactions
+
+You MUST:
+- Convert natural language dates (e.g. "5th March 2026") → "2026-03-05"
+- If entityId/branchId/customerId not provided, use 0 (means ALL)
+- Always call this tool instead of asking the user for IDs
+
+The tool returns detailed transaction data.
+You must compute totals from the result if user asks for totals.`,
 
 inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),

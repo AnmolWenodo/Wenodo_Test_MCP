@@ -14,9 +14,9 @@ export async function getSalesHandler(input: {
       .request()
       .input("PI_START_DATE", input.fromDate || null)
       .input("PI_END_DATE", input.toDate || null)
-      .input("PI_ENTITY_ID", input.entityId ?? null)
-      .input("PI_BRANCH_ID", input.branchId ?? null)
-      .input("PI_CUSTOMER_ID", input.customerId ?? null)
+      .input("PI_ENTITY_ID", input.entityId ?? 0)
+      .input("PI_BRANCH_ID", input.branchId ?? 0)
+      .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .execute("PRC_GET_MCP_DATA");
 
     return {
