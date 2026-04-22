@@ -22,19 +22,20 @@ Use when user asks:
     const res = await getEmployeesHandler(input);
 
     if (res.isError) {
-      return { content: [{ type: "text", text: `❌ ${res.error}` }] };
+      return {
+        content: [
+          {
+            type: "text",
+            text: `❌ ${res.error}`,
+          },
+        ],
+      };
     }
 
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify({
-            widget: "employee_cards",
-            data: res.result?.slice(0, 50) ?? [],
-          }),
-        },
-      ],
+      structuredContent: {
+        employees: res.result ?? [],
+      },
     };
   },
 };
