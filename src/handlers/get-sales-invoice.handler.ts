@@ -3,6 +3,7 @@ import { getDb } from "../clients/db-client";
 export async function getSalesInvoiceHandler(input: any) {
   try {
     const db = getDb();
+    console.log("Sales Header Tool Called");
 
     const result = await db
       .request()

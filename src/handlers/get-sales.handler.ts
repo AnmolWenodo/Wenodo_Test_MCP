@@ -9,6 +9,7 @@ export async function getSalesHandler(input: {
 }) {
   try {
     const db = getDb();
+    console.log("Sales Summary Tool Called");
 
     const result = await db
       .request()

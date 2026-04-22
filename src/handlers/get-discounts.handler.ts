@@ -3,6 +3,7 @@ import { getDb } from "../clients/db-client";
 export async function getDiscountsHandler(input: any) {
   try {
     const db = getDb();
+    console.log("Discount Tool Called");
 
     const result = await db
       .request()

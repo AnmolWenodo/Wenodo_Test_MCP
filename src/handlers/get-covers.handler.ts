@@ -3,7 +3,7 @@ import { getDb } from "../clients/db-client";
 export async function getCoversHandler(input: any) {
   try {
     const db = getDb();
-
+    console.log("Cover Tool Called");
     const result = await db
       .request()
       .input("PI_START_DATE", input.fromDate)
