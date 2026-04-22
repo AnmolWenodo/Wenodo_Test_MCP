@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { getEmployeesHandler } from "../../handlers/get-employees.handler";
 
-
 export const getEmployeesTool = {
- name: "get-employees",
-description: `
+  name: "get-employees",
+  description: `
 Get employee performance.
 
 Use when user asks:
@@ -29,8 +28,11 @@ Use when user asks:
     return {
       content: [
         {
-          type: "text",
-          text: JSON.stringify(res.result?.slice(0, 50) ?? [], null, 2),
+          type: "widget",
+          widget: {
+            type: "employee_cards", // MUST match your UI widget name EXACTLY
+          },
+          data: res.result ?? [],
         },
       ],
     };
