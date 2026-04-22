@@ -28,11 +28,11 @@ Use when user asks:
     return {
       content: [
         {
-          type: "widget",
-          widget: {
-            type: "employee_cards", // MUST match your UI widget name EXACTLY
-          },
-          data: res.result ?? [],
+          type: "text",
+          text: JSON.stringify({
+            widget: "employee_cards",
+            data: res.result?.slice(0, 50) ?? [],
+          }),
         },
       ],
     };
