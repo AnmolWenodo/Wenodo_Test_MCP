@@ -34,7 +34,7 @@ Use when user asks:
 
     return {
       structuredContent: {
-        employees: res.result ?? [],
+        data: res.result ?? [],
       },
     };
   },
