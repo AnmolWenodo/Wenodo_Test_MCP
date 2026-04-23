@@ -33,9 +33,12 @@ Use when user asks:
     }
 
     return {
-      structuredContent: {
-        data: res.result ?? [],
-      },
+     content: [
+          {
+            type: "text",
+            text: res.result,
+          },
+        ],
     };
   },
 };
