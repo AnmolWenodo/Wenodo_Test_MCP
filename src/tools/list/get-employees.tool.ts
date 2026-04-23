@@ -36,7 +36,7 @@ Use when user asks:
      content: [
           {
             type: "text",
-            text: res.result,
+            text: JSON.stringify(res.result),
           },
         ],
     };
