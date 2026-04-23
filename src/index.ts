@@ -80,29 +80,29 @@ app.post("/mcp", express.json(), async (req, res) => {
   }
 });
 
-app.get("/mcp", async (req, res) => {
-  const server = createServer();
+// app.get("/mcp", async (req, res) => {
+//   const server = createServer();
 
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless
-  });
+//   const transport = new StreamableHTTPServerTransport({
+//     sessionIdGenerator: undefined, // stateless
+//   });
 
-  try {
-    await server.connect(transport);
+//   try {
+//     await server.connect(transport);
 
-    // This triggers MCP "list tools"
-    await transport.handleRequest(req, res, {
-      method: "tools/list"
-    });
+//     // This triggers MCP "list tools"
+//     await transport.handleRequest(req, res, {
+//       method: "tools/list"
+//     });
 
-  } catch (error) {
-    console.error("GET /mcp failed:", error);
-    res.status(500).json({ error: "Failed to fetch tools" });
-  } finally {
-    await transport.close();
-    await server.close();
-  }
-});
+//   } catch (error) {
+//     console.error("GET /mcp failed:", error);
+//     res.status(500).json({ error: "Failed to fetch tools" });
+//   } finally {
+//     await transport.close();
+//     await server.close();
+//   }
+// });
 
 
 app.listen(PORT, () => {
