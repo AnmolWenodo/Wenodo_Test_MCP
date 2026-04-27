@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { getCoversHandler } from "../../handlers/get-covers.handler";
 
-
 export const getCoversTool = {
   name: "get-covers",
   description: `
@@ -14,25 +13,52 @@ Use when user asks:
 `,
 
   inputSchema: z.object({
-    fromDate: z.string(),
-    toDate: z.string(),
-    entityId: z.number(),
-    branchId: z.number(),
-    customerId: z.number(),
+    fromDate: z.string().describe("Start date YYYY-MM-DD"),
+    toDate: z.string().describe("End date YYYY-MM-DD"),
+
+    entityId: z.number().optional().default(0),
+
+    // 🔥 SUPPORT MULTIPLE FORMATS
+    branchId: z
+      .union([z.number(), z.string(), z.array(z.number())])
+      .optional()
+      .default(0)
+      .describe("Branch ID or multiple IDs"),
+
+    customerId: z.number().optional().default(0),
   }),
 
   handler: async (input: any) => {
     const res = await getCoversHandler(input);
 
     if (res.isError) {
-      return { content: [{ type: "text", text: `❌ ${res.error}` }] };
+      return {
+        content: [
+          {
+            type: "text",
+            text: `❌ ${res.error}`,
+          },
+        ],
+      };
     }
+
+    const data = res.result ?? [];
+
+    // 🔥 LIMIT RESULT (IMPORTANT)
+    const safeData = data;
 
     return {
       content: [
         {
           type: "text",
-          text: JSON.stringify(res.result?.slice(0, 50) ?? [], null, 2),
+          text: JSON.stringify(
+            {
+              count: safeData.length,
+              data: safeData,
+            },
+            null,
+            2
+          ),
         },
       ],
     };

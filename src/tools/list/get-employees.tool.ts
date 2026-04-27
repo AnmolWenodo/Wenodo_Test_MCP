@@ -14,7 +14,11 @@ Use when user asks:
 
   inputSchema: z.object({
     entityId: z.number(),
-    branchId: z.number(),
+     branchId: z
+      .union([z.number(), z.string(), z.array(z.number())])
+      .optional()
+      .default(0)
+      .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
   }),
 
