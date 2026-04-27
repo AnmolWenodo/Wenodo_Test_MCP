@@ -16,9 +16,9 @@ Use when user asks:
   inputSchema: z.object({
     fromDate: z.string(),
     toDate: z.string(),
-    entityId: z.number().optional(),
-    branchId: z.number().optional(),
-    customerId: z.number().optional(),
+    entityId: z.number(),
+    branchId: z.number(),
+    customerId: z.number(),
   }),
 
   handler: async (input: any) => {

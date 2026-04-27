@@ -27,9 +27,9 @@ inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),
   toDate: z.string().describe("End date YYYY-MM-DD"),
 
-  entityId: z.number().optional().describe("Entity ID"),
-  branchId: z.number().optional().describe("Branch ID"),
-  customerId: z.number().optional().describe("Customer ID"),
+  entityId: z.number().describe("Entity ID"),
+  branchId: z.number().describe("Branch ID"),
+  customerId: z.number().describe("Customer ID"),
 }),
 
   handler: async (input: any) => {
