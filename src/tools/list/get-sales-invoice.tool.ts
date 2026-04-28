@@ -66,13 +66,71 @@ Aggregate results to compute totals, averages, and trends.
   handler: async (input: any) => {
     const res = await getSalesInvoiceHandler(input);
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(res.result, null, 2),
-        },
-      ],
-    };
+    const resposne = await transformInvoicesResponse(res.result);
+
+    console.log(resposne);
+    
+
+    return resposne;
   },
 };
+
+
+
+function transformInvoicesResponse(response: any) {
+  // 🔥 normalize input
+  let invoices = [];
+
+  if (Array.isArray(response)) {
+    invoices = response;
+  } else if (Array.isArray(response?.data)) {
+    invoices = response.data;
+  } else if (response) {
+    invoices = [response]; // single object case
+  }
+
+  const count = invoices.length;
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Found ${count} sales records`,
+      },
+
+    ...invoices.map((inv: any, index: number) => ({
+  type: "text",
+  text: [
+    `Sale #${index + 1}`,
+    `Sales ID: ${inv.EPOS_SALES_HEADER_ID}`,
+    `Check ID: ${inv.CHECK_ID}`,
+    `Check No: ${inv.CHECK_NO}`,
+    `Entity: ${inv.ENTITY_NAME} (${inv.ENTITY_ID})`,
+    `Branch: ${inv.BRANCH_NAME} (${inv.BRANCH_ID})`,
+    inv.CASHUP_MAIN_ID && `Cashup ID: ${inv.CASHUP_MAIN_ID}`,
+    inv.CASHUP_DATE && `Cashup Date: ${inv.CASHUP_DATE}`,
+    inv.CREATED_DATE && `Created: ${inv.CREATED_DATE}`,
+    inv.OPEN_TIME && `Open Time: ${inv.OPEN_TIME}`,
+    inv.CLOSE_TIME && `Close Time: ${inv.CLOSE_TIME}`,
+    inv.SESSION_NAME && `Session: ${inv.SESSION_NAME}`,
+    inv.COVERS != null && `Covers: ${inv.COVERS}`,
+    `Net: ${inv.NET}`,
+    `Tax: ${inv.TAX}`,
+    `Gross: ${inv.GROSS}`,
+    inv.DISCOUNT != null && `Discount: ${inv.DISCOUNT}`,
+    inv.COMP != null && `Comp: ${inv.COMP}`,
+    inv.VOID != null && `Void: ${inv.VOID}`,
+    inv.TIPS != null && `Tips: ${inv.TIPS}`,
+    inv.SERVICE_CHARGE != null && `Service Charge: ${inv.SERVICE_CHARGE}`,
+    inv.DONATION != null && `Donation: ${inv.DONATION}`,
+    inv.INTEGRATION_SYSTEM_NAME &&
+      `Source: ${inv.INTEGRATION_SYSTEM_NAME} (${inv.INTEGRATION_SYSTEM_ID})`,
+  ]
+    .filter(Boolean)
+    .join(" | "), // ✅ single line
+})),
+    ],
+
+    
+  };
+}
