@@ -66,10 +66,10 @@ Aggregate results to compute totals, averages, and trends.
   handler: async (input: any) => {
     const res = await getSalesInvoiceHandler(input);
 
-    const resposne = await transformInvoicesResponse(res.result);
-    console.log(resposne);
+  const response = transformInvoicesResponse(res.result);
+    console.log(response);
     
-    return resposne;
+    return response;
   },
 };
 
