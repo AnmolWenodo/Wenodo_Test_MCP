@@ -28,11 +28,7 @@ inputSchema: z.object({
   toDate: z.string().describe("End date YYYY-MM-DD"),
 
   entityId: z.number().describe("Entity ID"),
-   branchId: z
-      .union([z.number(), z.string(), z.array(z.number())])
-      .optional()
-      .default(0)
-      .describe("Branch ID or multiple IDs"),
+  branchId: z.number().describe("Branch ID"),
   customerId: z.number().describe("Customer ID"),
 }),
 

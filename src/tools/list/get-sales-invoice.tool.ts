@@ -66,7 +66,7 @@ Aggregate results to compute totals, averages, and trends.
   handler: async (input: any) => {
     const res = await getSalesInvoiceHandler(input);
 
-    const response = transformInvoicesResponse(res.result);
+    const response = transformInvoicesResponse1(res.result);
     console.log(response);
 
     return response;
@@ -118,7 +118,7 @@ function transformInvoicesResponse1(response: any) {
             `Source: ${inv.INTEGRATION_SYSTEM_NAME} (${inv.INTEGRATION_SYSTEM_ID})`,
         ]
           .filter(Boolean)
-          .join(" | "), // ✅ single line
+          .join("\n"),
       })),
     ],
   };
