@@ -67,10 +67,8 @@ Aggregate results to compute totals, averages, and trends.
     const res = await getSalesInvoiceHandler(input);
 
     const resposne = await transformInvoicesResponse(res.result);
-
     console.log(resposne);
     
-
     return resposne;
   },
 };
@@ -93,11 +91,6 @@ function transformInvoicesResponse(response: any) {
 
   return {
     content: [
-      {
-        type: "text",
-        text: `Found ${count} sales records`,
-      },
-
     ...invoices.map((inv: any, index: number) => ({
   type: "text",
   text: [
