@@ -89,8 +89,12 @@ function transformInvoicesResponse1(response: any) {
 
   return {
     content: [
+        {
+        type: "text" as const,
+        text: `Found ${count} records`,
+      },
       ...invoices.map((inv: any, index: number) => ({
-        type: "text",
+        type: "text" as const,
         text: [
           `Sale #${index + 1}`,
           `Sales ID: ${inv.EPOS_SALES_HEADER_ID}`,
