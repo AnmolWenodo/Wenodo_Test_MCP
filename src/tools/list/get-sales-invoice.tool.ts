@@ -62,15 +62,11 @@ Aggregate results to compute totals, averages, and trends.
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
     page: z.number().optional().default(1).describe("Page number (default: 1)"),
-    pageSize: z
-      .number()
-      .optional()
-      .default(10)
-      .describe("Records per page (default: 10)"),
   }),
 
   handler: async (input: any) => {
-    const { page = 1, pageSize = 10, ...filters } = input;
+    const PAGE_SIZE = 10; 
+    const { page = 1, pageSize = PAGE_SIZE, ...filters } = input;
 
     const res = (await getSalesInvoiceHandler(filters)) as any;
 
