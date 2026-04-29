@@ -61,13 +61,42 @@ Aggregate results to compute totals, averages, and trends.
       .default(0)
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
+    page: z.number().optional().default(1).describe("Page number (default: 1)"),
+    pageSize: z
+      .number()
+      .optional()
+      .default(10)
+      .describe("Records per page (default: 10)"),
   }),
 
   handler: async (input: any) => {
-    const res = await getSalesInvoiceHandler(input);
+    const { page = 1, pageSize = 10, ...filters } = input;
 
-    const response = transformInvoicesResponse1(res.result);
-    console.log(response);
+    const res = (await getSalesInvoiceHandler(filters)) as any;
+
+    // Paginate the raw result before transforming
+    let rawData = [];
+    if (Array.isArray(res.result)) {
+      rawData = res.result;
+    } else if (Array.isArray(res.result?.data)) {
+      rawData = res.result.data;
+    } else if (res.result) {
+      rawData = [res.result];
+    }
+
+    const totalCount = rawData.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const start = (page - 1) * pageSize;
+    const paginatedData = rawData.slice(start, start + pageSize);
+
+    // Transform only the paginated slice
+    const response = transformInvoicesResponse1(paginatedData);
+
+    // Prepend pagination summary
+    response.content.unshift({
+      type: "text" as const,
+      text: `Page ${page} of ${totalPages} | Showing ${paginatedData.length} of ${totalCount} records`,
+    });
 
     return response;
   },
@@ -89,7 +118,7 @@ function transformInvoicesResponse1(response: any) {
 
   return {
     content: [
-        {
+      {
         type: "text" as const,
         text: `Found ${count} records`,
       },
