@@ -1,116 +1,170 @@
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { ToolFactory } from "./tools/tool-factory";
+import { listTools } from "./tools/list";
 import { connectDB } from "./clients/db-client";
-
-// dotenv.config();
-
+import zodToJsonSchema from "zod-to-json-schema";
+import { z } from "zod";
 const app = express();
 const PORT = Number(process.env.PORT ?? 3000);
 
 app.use(cors());
+app.use(express.json());
 
-async function start() {
-  await connectDB();
-}
-function createServer(): McpServer {
-  const server = new McpServer({
-    name: "my-mcp-server",
-    version: "1.0.0",
-  });
+// ─── Tool registry ────────────────────────────────────────────────────────────
 
-  ToolFactory(server);
-  return server;
-}
+const toolMap = new Map(listTools.map((tool) => [tool.name, tool]));
 
-// Legacy SSE endpoint support
-const sseServer = createServer();
-const sseTransports = new Map<string, SSEServerTransport>();
+// ─── handleMCPRequest ─────────────────────────────────────────────────────────
 
-app.get("/sse", async (_req, res) => {
-  const transport = new SSEServerTransport("/messages", res);
-  sseTransports.set(transport.sessionId, transport);
+let isInitialized = false;
 
-  res.on("close", () => {
-    sseTransports.delete(transport.sessionId);
-  });
-
-  await sseServer.connect(transport);
-});
-
-app.post("/messages", async (req, res) => {
-  const sessionId = req.query.sessionId as string | undefined;
-
-  if (!sessionId) {
-    res.status(400).json({ error: "Missing sessionId query param" });
-    return;
+async function handleMCPRequest(
+  method: string,
+  params: Record<string, any> = {},
+  id: string | number | null,
+) {
+  if (!isInitialized && method !== "initialize") {
+    return {
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Server not initialized" },
+      id,
+    };
   }
-
-  const transport = sseTransports.get(sessionId);
-  if (!transport) {
-    res.status(404).json({ error: `No SSE session found: ${sessionId}` });
-    return;
-  }
-
-  await transport.handlePostMessage(req, res);
-});
-
-// Streamable HTTP MCP endpoint
-app.post("/mcp", express.json(), async (req, res) => {
-  const server = createServer();
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // Stateless mode
-  });
 
   try {
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
-  } catch (error) {
-    console.error("Failed to process /mcp request:", error);
-    if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+    let result: Record<string, any>;
+
+    switch (method) {
+      case "initialize":
+        isInitialized = true;
+        result = {
+          protocolVersion: "2024-11-05",
+          capabilities: { tools: { listChanged: false } },
+          serverInfo: { name: "my-mcp-server", version: "1.0.0" },
+        };
+        break;
+
+      case "tools/list":
+        result = {
+          tools: listTools.map((tool) => {
+            // Cast to ZodObject to access .shape directly
+            const shape = (tool.inputSchema as unknown as z.ZodObject<any>)
+              .shape;
+
+            // Build JSON schema manually from shape
+            const properties: Record<string, any> = {};
+            const required: string[] = [];
+
+            for (const [key, value] of Object.entries(shape)) {
+              const fieldSchema = zodToJsonSchema(value as any) as any;
+              properties[key] = fieldSchema;
+
+              // If field is not optional, mark as required
+              const isOptional =
+                value instanceof z.ZodOptional || value instanceof z.ZodDefault;
+              if (!isOptional) {
+                required.push(key);
+              }
+            }
+
+            return {
+              name: tool.name,
+              description: tool.description,
+              inputSchema: {
+                type: "object",
+                properties,
+                required,
+              },
+            };
+          }),
+        };
+        break;
+
+      case "tools/call": {
+        const { name, arguments: args = {} } = params as {
+          name: string;
+          arguments?: any;
+        };
+
+        const tool = toolMap.get(name);
+        if (!tool) {
+          return {
+            jsonrpc: "2.0",
+            error: { code: -32602, message: `Tool not found: ${name}` },
+            id,
+          };
+        }
+
+        // ✅ Call handler directly
+        const toolResult = await tool.handler(args);
+        result = {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(toolResult, null, 2),
+            },
+          ],
+        };
+        break;
+      }
+
+      default:
+        return {
+          jsonrpc: "2.0",
+          error: { code: -32601, message: `Method not found: ${method}` },
+          id,
+        };
     }
-  } finally {
-    await transport.close();
-    await server.close();
+
+    return { jsonrpc: "2.0", result, id };
+  } catch (error: any) {
+    console.error(`❌ Error handling ${method}:`, error.message);
+    return {
+      jsonrpc: "2.0",
+      error: { code: -32603, message: error.message },
+      id,
+    };
   }
+}
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
+app.post("/mcp", async (req, res) => {
+  const { method, params, id } = req.body;
+  console.log(`📩 MCP Request: ${method}`);
+  const response = await handleMCPRequest(method, params, id);
+  res.json(response);
 });
 
-app.get("/mcp", async (req, res) => {
-  const server = createServer();
-
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined, // stateless
+app.get("/mcp", (_req, res) => {
+  res.json({
+    protocolVersion: "2024-11-05",
+    serverInfo: { name: "my-mcp-server", version: "1.0.0" },
+    capabilities: { tools: { listChanged: false } },
+    toolCount: listTools.length,
+    tools: listTools.map((t) => t.name),
   });
-
-  try {
-    await server.connect(transport);
-
-    // This triggers MCP "list tools"
-    await transport.handleRequest(req, res, {
-      method: "tools/list"
-    });
-
-  } catch (error) {
-    console.error("GET /mcp failed:", error);
-    res.status(500).json({ error: "Failed to fetch tools" });
-  } finally {
-    await transport.close();
-    await server.close();
-  }
 });
 
+app.get("/health", (_req, res) => {
+  res.json({
+    status: isInitialized ? "healthy" : "waiting for initialize",
+    tools: listTools.length,
+  });
+});
 
-app.listen(PORT, () => {
-  start().catch((err) => {
-    console.error("Failed to start server:", err);
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
+app.listen(PORT, async () => {
+  await connectDB().catch((err) => {
+    console.error("Failed to connect to DB:", err);
     process.exit(1);
   });
-  console.log(`MCP server listening on http://localhost:${PORT}`);
-  console.log(`SSE endpoint: http://localhost:${PORT}/sse`);
-  console.log(`Streamable HTTP endpoint: http://localhost:${PORT}/mcp`);
+
+  console.log(`🚀 MCP server running on http://localhost:${PORT}`);
+  console.log(`📋 Tools loaded: ${listTools.map((t) => t.name).join(", ")}`);
+  console.log(`📡 POST /mcp  — JSON-RPC endpoint`);
+  console.log(`📡 GET  /mcp  — Server info`);
+  console.log(`📡 GET  /health — Health check`);
 });
