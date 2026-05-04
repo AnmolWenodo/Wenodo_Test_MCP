@@ -106,13 +106,13 @@ inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),
   toDate: z.string().describe("End date YYYY-MM-DD"),
   entityId: z.number().describe("Entity ID"),
-  branchId: z.number().describe("Branch ID"),
+  branchId: z.number().describe("Branch ID comma separated for multiple branches"),
   customerId: z.number().describe("Customer ID"),
   groupBy: z.array(
-    z.enum(["date", "hour", "session", "category", "revenueCenter", "branch"])
+    z.enum(["date", "hour", "session", "category", "revenueCenter"])
   )
   .optional()
-  .describe("Fields to group by"),
+  .describe("Fields to group by only above mentioned fields are allowed"),
 }),
 
   handler: async (input: any) => {
