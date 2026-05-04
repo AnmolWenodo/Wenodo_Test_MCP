@@ -110,8 +110,7 @@ inputSchema: z.object({
   customerId: z.number().describe("Customer ID"),
   groupBy: z.array(
     z.enum(["date", "hour", "session", "category", "revenueCenter"])
-  )
-  .optional()
+  ).default(["date"])
   .describe("Fields to group by only above mentioned fields are allowed"),
 }),
 
