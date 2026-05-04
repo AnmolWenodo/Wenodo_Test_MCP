@@ -9,7 +9,7 @@ import { getEmployeesTool } from "./get-employees.tool";
 import { getPaymentsTool } from "./get-payments.tool";
 export const listTools = [
   helloTool,
-  // getSalesTool,
+  getSalesTool,
   getSalesInvoiceTool,
   // getSalesInvoiceLinesTool,
   // getCoversTool,

@@ -98,14 +98,7 @@ async function handleMCPRequest(
 
         // ✅ Call handler directly
         const toolResult = await tool.handler(args);
-        result = {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(toolResult, null, 2),
-            },
-          ],
-        };
+        result = toolResult;
         break;
       }
 

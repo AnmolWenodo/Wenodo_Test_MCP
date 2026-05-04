@@ -6,6 +6,7 @@ export async function getSalesHandler(input: {
   entityId?: number;
   branchId?: number;
   customerId?: number;
+  groupBy?: string[]; // e.g. ["date"], ["session"], ["category"], ["revenueCenter"], ["branch"]
 }) {
   try {
     const db = getDb();
@@ -28,7 +29,8 @@ export async function getSalesHandler(input: {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", input.branchId ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
-      .execute("PRC_GET_MCP_DATA");
+      .input("PI_GROUP_BY", input.groupBy ?? null) // No grouping for summary tool
+      .execute("PRC_GET_SALES_SUMMARY");
 
     // Flatten all recordsets into a single array
 const rows: any[] = Array.from((result.recordsets as any)[0] ?? []);
@@ -118,20 +120,7 @@ const rows: any[] = Array.from((result.recordsets as any)[0] ?? []);
 
     // ── Final response ────────────────────────────────────────
     return {
-      result: {
-        totals: {
-          gross:          round(totalGross),
-          net:            round(totalNet),
-          service_charge: round(totalServiceCharge),
-          tax:            round(totalTax),
-          tips:           round(totalTips),
-          discount:       round(totalDiscount),
-        },
-        by_session:        roundGroup(bySession),
-        by_branch:         roundGroup(byBranch),
-        by_revenue_center: roundGroup(byRevenueCenter),
-        row_count: rows.length,
-      },
+      result: rows,
       isError: false,
       error: null,
     };
