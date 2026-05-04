@@ -29,7 +29,7 @@ export async function getSalesHandler(input: {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", input.branchId ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
-      .input("PI_GROUP_BY", input.groupBy ?? null) // No grouping for summary tool
+      .input("PI_GROUP_BY", input.groupBy?.join(",") ?? null) // No grouping for summary tool
       .execute("PRC_GET_SALES_SUMMARY");
 
     // Flatten all recordsets into a single array
