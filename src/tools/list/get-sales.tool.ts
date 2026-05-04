@@ -23,7 +23,6 @@ Use this tool when the user asks for:
 - sales by date / time / session
 - sales by category
 - sales by revenue center
-- sales by branch
 - business performance
 
 ---
@@ -51,14 +50,12 @@ You can group results using one or more of:
 - "session" → Breakfast / Lunch / Dinner
 - "category" → Product category
 - "revenueCenter" → Area within branch
-- "branch" → Sales by branch
 
 Example:
 - ["date"] → daily trend
 - ["session"] → sales by breakfast/lunch/dinner
 - ["category"] → sales by product category
 - ["date", "session"] → daily session breakdown
-- ["branch"] → sales by branch
 
 ---
 
