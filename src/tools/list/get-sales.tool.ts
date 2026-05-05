@@ -43,19 +43,7 @@ This tool supports both:
 
 ### Supported GroupBy Fields:
 
-You can group results using one or more of:
 
-- 1 → Daily sales
-- 2 → Hour-wise sales
-- 3 → Breakfast / Lunch / Dinner
-- 4 → Product category
-- 5 → Area within branch
-
-Example:
-- [1] → daily trend
-- [3] → sales by breakfast/lunch/dinner
-- [4] → sales by product category
-- [1, 3] → daily session breakdown
 
 ---
 
@@ -125,6 +113,7 @@ inputSchema: z.object({
 }),
 
   handler: async (input: any) => {
+    console.log("get-sales input:", input);
     const res = await getSalesHandler(input);
 
      console.log("get-sales result:", res);

@@ -37,7 +37,6 @@ export async function getSalesHandler(input: {
       .input("PI_GROUP_BY", groupBy ?? null) // No grouping for summary tool
       .execute("PRC_GET_SALES_SUMMARY");
 
-      
 
     // Flatten all recordsets into a single array
 const rows: any[] = Array.from((result.recordsets as any)[0] ?? []);
