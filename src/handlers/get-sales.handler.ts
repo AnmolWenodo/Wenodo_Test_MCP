@@ -1,3 +1,4 @@
+import { log } from "node:console";
 import { getDb } from "../clients/db-client";
 
 export async function getSalesHandler(input: {
@@ -39,13 +40,15 @@ export async function getSalesHandler(input: {
 
 
     // Flatten all recordsets into a single array
+
+    log("Raw DB result:", result.recordsets);
 const rows: any[] = Array.from((result.recordsets as any)[0] ?? []);
     // ── Accumulators ──────────────────────────────────────────
   
 
     // ── Final response ────────────────────────────────────────
     return {
-      result: rows,
+      result: result.recordsets,
       isError: false,
       error: null,
     };
