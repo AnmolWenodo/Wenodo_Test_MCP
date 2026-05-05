@@ -10,7 +10,7 @@ import { getPaymentsTool } from "./get-payments.tool";
 export const listTools = [
   helloTool,
   getSalesTool,
-  getSalesInvoiceTool,
+  // getSalesInvoiceTool,
   // getSalesInvoiceLinesTool,
   // getCoversTool,
   // getPaymentsTool,

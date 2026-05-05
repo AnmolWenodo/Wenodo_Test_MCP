@@ -8,7 +8,7 @@ export const getSalesTool = {
     `
 Fetch sales data .
 
-This tool retrieves sales transactions and supports dynamic aggregation based on grouping parameters such as date, hour, session, category,branchwise and revenue center.
+This tool retrieves sales transactions and supports dynamic aggregation based on grouping parameters such as date, hour, session, categoryand revenue center.
 
 ---
 
