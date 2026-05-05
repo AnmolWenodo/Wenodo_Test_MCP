@@ -4,9 +4,9 @@ export async function getSalesHandler(input: {
   fromDate: string;
   toDate: string;
   entityId?: number;
-  branchId?: number;
+  branchId?: number | number[] ;
   customerId?: number;
-  groupBy?: string[]; // e.g. ["date"], ["session"], ["category"], ["revenueCenter"], ["branch"]
+  groupBy?: string[] | string; 
 }) {
   try {
     const db = getDb();
