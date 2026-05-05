@@ -110,9 +110,23 @@ inputSchema: z.object({
 ]).describe("Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"),
   customerId: z.number().describe("Customer ID"),
   groupBy: z.array(
-    z.enum(["date", "hour", "session", "category", "revenueCenter"])
-  ).default(["date"])
-  .describe("Fields to group by only above mentioned fields are allowed"),
+  z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+    z.literal(4),
+    z.literal(5),
+  ])
+).default([1])
+.describe(
+  "Fields to group by. Pass numeric IDs only:\n" +
+  "1 = date\n" +
+  "2 = hour\n" +
+  "3 = session\n" +
+  "4 = category\n" +
+  "5 = revenueCenter\n" +
+  "Example: [1] for daily, [1,3] for date+session. Only these values are allowed."
+),
 }),
 
   handler: async (input: any) => {
