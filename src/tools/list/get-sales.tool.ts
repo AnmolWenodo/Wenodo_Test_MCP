@@ -103,7 +103,11 @@ inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),
   toDate: z.string().describe("End date YYYY-MM-DD"),
   entityId: z.number().describe("Entity ID"),
-  branchId: z.number().describe("Branch ID comma separated for multiple branches"),
+  branchId: z.union([
+  z.number(),
+  z.array(z.number()),
+  z.string()
+]).describe("Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"),
   customerId: z.number().describe("Customer ID"),
   groupBy: z.array(
     z.enum(["date", "hour", "session", "category", "revenueCenter"])
