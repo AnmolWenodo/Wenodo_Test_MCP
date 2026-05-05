@@ -91,7 +91,7 @@ inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),
   toDate: z.string().describe("End date YYYY-MM-DD"),
   entityId: z.number().describe("Entity ID"),
-  branchId: z.union([
+  branchIds: z.union([
   z.number(),
   z.array(z.number()),
   z.string()
