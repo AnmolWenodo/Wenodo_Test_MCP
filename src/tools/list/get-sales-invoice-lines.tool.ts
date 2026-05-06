@@ -21,6 +21,7 @@ Use this tool when the user asks for:
 - detailed sales breakdown
 - receipt-level data
 - item-level sales inside invoices
+- Products sold per invoice
 
 ---
 
@@ -61,39 +62,11 @@ An invoice may contain multiple rows (line items), all sharing the same EPOS_SAL
 
 ### Typical Use Cases:
 
-1. Get all invoices for a date range
+1. Top items sold in date range
 2. Analyze what items were sold in each invoice
-3. Calculate total sales per invoice
+3. Identify popular product combinations in invoices
 4. Identify high-value transactions
 5. Detect discounts or voided items
-6. Build receipt-level UI or tables
-
----
-
-### Post-processing Required:
-
-To convert raw data into meaningful insights:
-
-- Group by: EPOS_SALES_HEADER_ID
-- Aggregate:
-  - total_net = sum(NET)
-  - total_tax = sum(TAX)
-  - total_gross = sum(GROSS)
-  - total_items = sum(QUANTITY)
-
----
-
-### Example Output (Grouped Invoice):
-
-{
-  "invoice_id": 21549934,
-  "time": "2026-01-01T18:45:19Z",
-  "items": [
-    { "name": "Miso White Chocolate", "qty": 1, "gross": 5 },
-    { "name": "Triple Chocolate", "qty": 1, "gross": 5 }
-  ],
-  "total": 10
-}
 
 ---
 
@@ -124,7 +97,7 @@ Use this tool when detailed transactional visibility is required rather than agg
     const res = await getSalesInvoiceLinesHandler(input);
 
     if (res.result) {
-      const safeData = res.result.slice(0, 50);
+      const safeData = res.result;
 
       return {
         content: [

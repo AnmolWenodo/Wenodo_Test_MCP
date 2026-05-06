@@ -11,7 +11,7 @@ export const listTools = [
   helloTool,
   getSalesTool,
   // getSalesInvoiceTool,
-  // getSalesInvoiceLinesTool,
+  getSalesInvoiceLinesTool,
   // getCoversTool,
   // getPaymentsTool,
   // getDiscountsTool,

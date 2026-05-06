@@ -3,7 +3,7 @@ import { getSalesHandler } from "../../handlers/get-sales.handler";
 import { log } from "node:console";
 
 export const getSalesTool = {
-  name: "get-sales-summary",
+  name: "get-sales-header-summary",
   description:
     `
 Fetch sales data .
