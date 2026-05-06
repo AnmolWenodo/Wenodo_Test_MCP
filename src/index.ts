@@ -41,7 +41,7 @@ async function handleMCPRequest(
         result = {
           protocolVersion: "2024-11-05",
           capabilities: { tools: { listChanged: false } },
-          serverInfo: { name: "my-mcp-server", version: "1.0.0" },
+          serverInfo: { name: "wenodo-mcp-server", version: "1.0.0" },
         };
         break;
 
@@ -133,7 +133,7 @@ app.post("/mcp", async (req, res) => {
 app.get("/mcp", (_req, res) => {
   res.json({
     protocolVersion: "2024-11-05",
-    serverInfo: { name: "my-mcp-server", version: "1.0.0" },
+    serverInfo: { name: "wenodo-mcp-server", version: "1.0.0" },
     capabilities: { tools: { listChanged: false } },
     toolCount: listTools.length,
     tools: listTools.map((t) => t.name),
