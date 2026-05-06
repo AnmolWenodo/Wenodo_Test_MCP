@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-lines.handler";
 
 export const getSalesInvoiceLinesTool = {
-  name: "get-sales-invoice-lines",
+  name: "get-sales-lines-summary",
   description: `
 Fetch invoice-level transactional sales data from the EPOS system.
 
