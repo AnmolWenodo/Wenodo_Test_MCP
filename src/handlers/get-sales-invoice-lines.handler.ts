@@ -4,6 +4,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
   try {
     const db = getDb();
     console.log("Sales Lines Tool Called");
+    console.log("Input Parameters:", input);
      let branchId: string | null = null;
      if (input.branchId !== undefined && input.branchId !== null) {
       if (Array.isArray(input.branchId)) {
@@ -15,6 +16,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       }
     }
 
+
     const result = await db
       .request()
       .input("PI_START_DATE", input.fromDate)
@@ -22,11 +24,9 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", branchId ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
+      .input("PI_GROUP_BY", input.groupBy ?? "6,1") 
       .execute("PRC_GET_PRODUCT_AND_CATEGORY_WISE_SALES_SUMMARY");
-      // .execute("PRC_GET_MCP_DATA_INVOICE_LINES");
-
-      
-
+    console.log("Raw DB Result:", result.recordset);
     return {
       result: result.recordset ?? [],
       isError: false,

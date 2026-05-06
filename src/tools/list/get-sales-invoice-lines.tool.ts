@@ -85,12 +85,27 @@ Use this tool when detailed transactional visibility is required rather than agg
     fromDate: z.string(),
     toDate: z.string(),
     entityId: z.number(),
-     branchId: z
+    branchId: z
       .union([z.number(), z.string(), z.array(z.number())])
       .optional()
       .default(0)
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
+    groupBy: z
+      .array(
+        z.union([
+          z.literal(1).transform(() => 1),
+          z.literal(2).transform(() => 2),
+          z.literal(3).transform(() => 3),
+          z.literal(4).transform(() => 4),
+          z.literal(5).transform(() => 5),
+        ]),
+      )
+      .default([1])
+      .describe(
+        "Fields to group by. Pass numeric IDs only:\n" +
+          "Example: [1] , [1,3] for date+session. Only these values are allowed.",
+      ),
   }),
 
   handler: async (input: any) => {
