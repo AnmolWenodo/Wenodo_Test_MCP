@@ -24,7 +24,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", branchId ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
-      .input("PI_GROUP_BY", input.groupBy ?? "6,1") 
+      .input("PI_GROUP_BY", input.groupBy ?? '6,1') 
       .execute("PRC_GET_PRODUCT_AND_CATEGORY_WISE_SALES_SUMMARY");
     console.log("Raw DB Result1:", result.recordset);
     return {
