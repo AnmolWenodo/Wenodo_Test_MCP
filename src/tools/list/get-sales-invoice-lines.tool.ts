@@ -4,81 +4,108 @@ import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-li
 export const getSalesInvoiceLinesTool = {
   name: "get-sales-invoice-lines",
   description: `
-Fetch invoice-level sales data from the EPOS system.
+Fetch invoice-level transactional sales data from the EPOS system.
 
-This tool returns transactional sales data at the invoice line level, including all line items associated with each invoice.
+This tool returns raw line-item level sales records, where each row represents a product sold within an invoice.
 
 ---
 
-### When to use:
+### ✅ When to use this tool
 
 Use this tool when the user asks for:
-- invoice list
-- sales invoices
-- transaction details
-- invoice-wise sales
-- order history
-- detailed sales breakdown
-- receipt-level data
-- item-level sales inside invoices
-- Products sold per invoice
+- invoice-level data
+- order / bill details
+- receipt-level breakdown
+- item-wise sales inside invoices
+- products sold per order
+- transaction history
+- detailed (non-aggregated) sales data
 
 ---
 
-### What this tool returns:
+### ❌ Do NOT use when
 
-Each record represents a sales line item linked to an invoice.
-
-Key fields include:
-
-- EPOS_SALES_HEADER_ID → Unique invoice / bill ID
-- TIME_OF_SALE → Timestamp of transaction
-- PRODUCT_NAME → Item sold
-- CATEGORY_NAME → Product category (Food, Drinks, etc.)
-- QUANTITY → Number of items sold
-- NET → Net amount (before tax)
-- TAX → Tax amount
-- GROSS → Final amount (after tax)
-- DISCOUNT → Discount applied
-- COMP → Complimentary items
-- VOID → Voided items
-- ACCOUNT_GROUP_NAME → Sales grouping (e.g., Cookies, Drinks)
-
-Example:
-An invoice may contain multiple rows (line items), all sharing the same EPOS_SALES_HEADER_ID. :contentReference[oaicite:0]{index=0}
+- User asks for high-level summaries (use summary tools instead)
+- User asks for pre-aggregated totals (unless groupBy is provided)
 
 ---
 
-### Important Behavior:
+### 📊 Data Structure
 
-- Multiple rows = one invoice (group by EPOS_SALES_HEADER_ID)
-- Data is at line-item level, not aggregated
-- Must be grouped to get:
-  - total invoice value
-  - number of items per invoice
-  - invoice summary
+Each row represents aggregated sales data, grouped dynamically based on the groupBy parameter.
+
+The dataset can include product, time, category, session, and revenue dimensions depending on the grouping applied.
+
+Core Metrics
+  NET → Total net sales amount
+  GROSS → Total gross sales amount
+  TAX → Total tax amount
+  DISCOUNT → Total discount amount
+  VOID → Total voided amount
+  QUANTITY → Total quantity sold (source column: QUANITY)
+Entity & Branch
+  ENTITY_ID → Entity identifier
+  BRANCH_ID → Branch identifier
+  ENTITY_NAME → Entity name
+  NAME → Branch name
+Product & Category
+  PRODUCT_NAME → Product name (present when grouped by product)
+  CATEGORY_NAME → Product category (present when grouped by category)
+Time Dimensions
+  CASHUP_DATE → Business date
+  HOUR_PART → Hour of sale (0–23)
+Sales Dimensions
+  REVENUE_CENTER → Sales channel / area (e.g., Unknown, Dine-in, Delivery)
+  SESSION_NAME → Session (Breakfast, Lunch, etc.) (nullable)
+
+⚠️ Important Behavior
+Data is already aggregated
+Each row represents a grouped result, not raw transactions
+Fields included depend on groupBy selection
+Missing dimensions may appear as:
+NULL
+default values (e.g., "Unknown")
 
 ---
 
-### Typical Use Cases:
+### 🧠 Grouping (PI_GROUP_BY)
 
-1. Top items sold in date range
-2. Analyze what items were sold in each invoice
-3. Identify popular product combinations in invoices
-4. Identify high-value transactions
-5. Detect discounts or voided items
+Pass numeric IDs as an array to control aggregation.
 
----
+Supported values:
 
-### Notes:
-
-- This tool does NOT return summarized data directly
-- Always perform grouping/aggregation after fetching
-- Suitable for tables, invoice cards, or drill-down UI
+1 → day (CASHUP_DATE)
+2 → hour (DATEPART(HOUR, TIME_OF_SALE))
+3 → session (if available in DB)
+4 → category (CATEGORY_NAME)
+5 → revenue center / account group (ACCOUNT_GROUP_NAME)
+6 → product (PRODUCT_NAME + PRODUCT_SKU)
 
 ---
 
-Use this tool when detailed transactional visibility is required rather than aggregated summaries.
+### 💡 Examples
+
+User: "Show invoices with item details"
+→ No groupBy (raw rows)
+
+User: "Sales by product"
+→ groupBy: [6]
+
+User: "Hourly sales"
+→ groupBy: [2]
+
+User: "Category sales by day"
+→ groupBy: [1, 4]
+
+---
+
+### 📌 Notes
+
+- Always convert natural language dates → YYYY-MM-DD
+
+---
+
+Use this tool when detailed transactional visibility or flexible grouping is required.
 `,
 
   inputSchema: z.object({
