@@ -13,20 +13,23 @@ This tool returns raw line-item level sales records, where each row represents a
 ### ✅ When to use this tool
 
 Use this tool when the user asks for:
-- invoice-level data
-- order / bill details
-- receipt-level breakdown
-- item-wise sales inside invoices
-- products sold per order
-- transaction history
-- detailed (non-aggregated) sales data
 
----
-
-### ❌ Do NOT use when
-
-- User asks for high-level summaries (use summary tools instead)
-- User asks for pre-aggregated totals (unless groupBy is provided)
+📄 Detailed / Transactional Queries
+invoice-level data
+order / bill details
+receipt-level breakdown
+item-wise sales inside invoices
+products sold per order
+transaction history
+detailed (non-aggregated) sales data
+📊 Aggregation / Analysis Queries (IMPORTANT)
+top / best selling products
+sales by product, category, or revenue center
+hourly or daily sales trends
+most popular items
+least selling items
+quantity or revenue-based rankings
+comparisons across categories/products
 
 ---
 
