@@ -4,7 +4,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
   try {
     const db = getDb();
     console.log("Sales Lines Tool Called");
-    console.log("Input Parameters:", input);
+    // console.log("Input Parameters:", input);
      let branchIds: string | null = null;
     
   branchIds = Array.isArray(input.branchIds)
@@ -26,7 +26,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .input("PI_GROUP_BY", groupBy ?? '') 
       .execute("PRC_GET_PRODUCT_AND_CATEGORY_WISE_SALES_SUMMARY");
-    console.log("Raw DB Result1:", result);
+    // console.log("Raw DB Result1:", result);
     return {
       result: result.recordset ?? [],
       isError: false,
