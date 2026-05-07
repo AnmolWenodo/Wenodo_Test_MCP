@@ -82,7 +82,6 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       .input("PI_GROUP_BY", groupBy ?? null) // No grouping for summary tool
       .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable) // TVP for custom date ranges
       .execute("PRC_GET_PRODUCT_AND_CATEGORY_WISE_SALES_SUMMARY");
-    console.log("Raw DB Result1:", result);
     return {
       result: result.recordset ?? [],
       isError: false,
