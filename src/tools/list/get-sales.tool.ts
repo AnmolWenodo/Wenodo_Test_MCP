@@ -76,7 +76,7 @@ Common metrics:
 - Category performance analysis
 - Revenue by revenue center
 - Drill-down from summary → transactions
-
+- houly sales trends where product is not included.
 ---
 
 ### Notes:

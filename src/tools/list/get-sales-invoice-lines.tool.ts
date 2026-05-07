@@ -4,7 +4,7 @@ import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-li
 export const getSalesInvoiceLinesTool = {
   name: "get-sales-lines-summary",
   description: `
-Fetch invoice-level transactional sales data from the EPOS system.
+Fetch sales-invoice-line-level transactional sales data from the EPOS system.
 
 This tool returns raw line-item level sales records, where each row represents a product sold within an invoice.
 
@@ -15,27 +15,28 @@ This tool returns raw line-item level sales records, where each row represents a
 Use this tool when the user asks for:
 
 📄 Detailed / Transactional Queries
-invoice-level data
-order / bill details
-receipt-level breakdown
+invoice-line-level data
+order / bill line details
+receipt-line-level breakdown
 item-wise sales inside invoices
 products sold per order
-transaction history
-detailed (non-aggregated) sales data
+detailed (non-aggregated) sales lines data
 📊 Aggregation / Analysis Queries (IMPORTANT)
 top / best selling products
 sales by product, category, or revenue center
-hourly or daily sales trends
+hourly or daily sales trends for product or sales lines
+sales performance of specific items
+comparisons of product sales across time or branches
 most popular items
 least selling items
 quantity or revenue-based rankings
-comparisons across categories/products
+comparisons across products
 
 ---
 
 ### 📊 Data Structure
 
-Each row represents aggregated sales data, grouped dynamically based on the groupBy parameter.
+Each row represents aggregated sales-line data, grouped dynamically based on the groupBy parameter.
 
 The dataset can include product, time, category, session, and revenue dimensions depending on the grouping applied.
 
@@ -94,7 +95,7 @@ User: "Show invoices with item details"
 User: "Sales by product"
 → groupBy: [6]
 
-User: "Hourly sales"
+User: "Hourly sales by product"
 → groupBy: [2]
 
 User: "Category sales by day"
