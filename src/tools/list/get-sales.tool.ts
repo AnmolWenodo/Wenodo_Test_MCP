@@ -171,10 +171,8 @@ inputSchema: z.object({
 }),
 
   handler: async (input: any) => {
-    console.log("get-sales input:", input);
     const res = await getSalesHandler(input);
 
-     console.log("get-sales result:", res);
     if (res.isError) {
       return {
         content: [{ type: "text", text: `❌ ${res.error}` }],

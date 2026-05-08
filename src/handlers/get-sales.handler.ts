@@ -71,15 +71,7 @@ export async function getSalesHandler(input: {
         // DEBUG LOG
         // ─────────────────────────────────────────────
     
-        console.log("➡️ INPUT PARAMS", {
-          fromDate: input.fromDate,
-          toDate: input.toDate,
-          entityId: input.entityId,
-          branchIds,
-          customerId: input.customerId,
-          groupBy: groupBy ?? null,
-          PI_MCP_DATES_TYPE: datesTable.rows,
-        });
+     
     
     const result = await db
       .request()
