@@ -12,7 +12,7 @@ This tool returns raw line-item level sales records, where each row represents a
 
 ### ✅ When to use this tool
 
-Use this tool when the user asks for:
+Use this tool only if the user asks for:
 
 📄 Detailed / Transactional Queries
 invoice-line-level data
@@ -24,7 +24,7 @@ detailed (non-aggregated) sales lines data
 📊 Aggregation / Analysis Queries (IMPORTANT)
 top / best selling products
 sales by product, category, or revenue center
-hourly or daily sales trends for product or sales lines
+hourly or daily sales trends for product or items
 sales performance of specific items
 comparisons of product sales across time or branches
 most popular items
@@ -109,7 +109,7 @@ User: "Category sales by day"
 
 ---
 
-Use this tool when detailed transactional visibility or flexible grouping is required.
+Use this tool only if user asked for detailed transactional visibility or flexible grouping is required.
 `,
 
 inputSchema: z.object({

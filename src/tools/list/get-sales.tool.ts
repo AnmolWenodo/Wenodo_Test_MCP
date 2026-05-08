@@ -8,7 +8,7 @@ export const getSalesTool = {
     `
 Fetch sales data .
 
-This tool retrieves sales transactions and supports dynamic aggregation based on grouping parameters such as date, hour, session, categoryand revenue center.
+This tool retrieves sales summaries of  transactions and supports dynamic aggregation based on grouping parameters such as date, hour, session, categoryand revenue center.
 
 ---
 
@@ -41,16 +41,10 @@ This tool supports both:
 
 ---
 
-### Supported GroupBy Fields:
-
-
-
----
-
 ### What this tool returns:
 
 #### If no GroupBy:
-- Raw transaction data (invoice / line-level)
+- Raw transaction data (invoice / Header-level)
 - Multiple rows per invoice possible
 
 #### If GroupBy is used:
@@ -70,6 +64,7 @@ Common metrics:
 
 ### Example Use Cases:
 
+- Sales summaries of year / month / date
 - Total sales for a date range
 - Sales trend over time (group by date)
 - Sales by session (Breakfast/Lunch/Dinner)
@@ -82,8 +77,7 @@ Common metrics:
 ### Notes:
 
 - This is the primary tool for revenue analysis
-- Use grouping for charts and summaries
-- Use raw data for detailed invoice-level queries
+- Use raw data for detailed invoice-header-level queries
 - Always compute totals if user asks for totals
 `,
 
