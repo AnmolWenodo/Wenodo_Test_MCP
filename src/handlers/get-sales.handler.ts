@@ -1,7 +1,10 @@
-import { log } from "node:console";
+import  sql from "mssql";
 import { getDb } from "../clients/db-client";
 
 export async function getSalesHandler(input: {
+  Month_Array: never[];
+  Period_Array: never[];
+  Week_Array: any[];
   fromDate: string;
   toDate: string;
   entityId?: number;
@@ -27,6 +30,56 @@ export async function getSalesHandler(input: {
     ? input.groupBy.join(",")   // → "1,3"
     : String(input.groupBy);    // → "1"
 
+     const datesTable = new sql.Table();
+        datesTable.create = false;
+    
+        datesTable.columns.add("START_DATE", sql.Date);
+        datesTable.columns.add("END_DATE", sql.Date);
+        // ─────────────────────────────────────────────
+        // WEEK ARRAY TVP
+        // ─────────────────────────────────────────────
+    
+        (input.Week_Array || []).forEach((row: any) => {
+          datesTable.rows.add(
+            row.WEEK_START_DATE || null,
+            row.WEEK_END_DATE || null,
+          );
+        });
+    
+        // ─────────────────────────────────────────────
+        // MONTH ARRAY TVP
+        // ─────────────────────────────────────────────
+    
+        (input.Month_Array || []).forEach((row: any) => {
+          datesTable.rows.add(
+            row.MONTH_START_DATE || null,
+            row.MONTH_END_DATE || null,
+          );
+        });
+        // ─────────────────────────────────────────────
+        // PERIOD ARRAY TVP
+        // ─────────────────────────────────────────────
+    
+        (input.Period_Array || []).forEach((row: any) => {
+          datesTable.rows.add(
+            row.PERIOD_START_DATE || null,
+            row.PERIOD_END_DATE || null,
+          );
+        });
+    
+        // ─────────────────────────────────────────────
+        // DEBUG LOG
+        // ─────────────────────────────────────────────
+    
+        console.log("➡️ INPUT PARAMS", {
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+          entityId: input.entityId,
+          branchIds,
+          customerId: input.customerId,
+          groupBy: groupBy ?? null,
+          PI_MCP_DATES_TYPE: datesTable.rows,
+        });
     
     const result = await db
       .request()
@@ -36,7 +89,8 @@ export async function getSalesHandler(input: {
       .input("PI_BRANCH_ID", branchIds ?? null)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .input("PI_GROUP_BY", groupBy ?? null) // No grouping for summary tool
-      .execute("PRC_GET_SALES_SUMMARY");
+      .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable)
+      .execute("PRC_MCP_GET_SALES_SUMMARY");
 
 
     // Flatten all recordsets into a single array
