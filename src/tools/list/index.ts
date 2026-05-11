@@ -7,13 +7,15 @@ import { getCoversTool } from "./get-covers.tool";
 import { getDiscountsTool } from "./get-discounts.tool";
 import { getEmployeesTool } from "./get-employees.tool";
 import { getPaymentsTool } from "./get-payments.tool";
+import { getCheckWiseSalesSummaryTool } from "./get-checkwise-summary.tool";
 export const listTools = [
   helloTool,
   getSalesTool,
   // getSalesInvoiceTool,
   getSalesInvoiceLinesTool,
+  getCheckWiseSalesSummaryTool,
   // getCoversTool,
-  // getPaymentsTool,
+  getPaymentsTool,
   // getDiscountsTool,
   // getEmployeesTool,
 ];

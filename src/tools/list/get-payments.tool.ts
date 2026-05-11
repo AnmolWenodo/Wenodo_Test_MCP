@@ -58,6 +58,8 @@ Fields include:
 
 ---
 
+
+
 ### Example Interpretation:
 
 - VISA → £44  
@@ -116,17 +118,93 @@ To generate insights:
 - Ideal for financial analysis and dashboards
 `,
 
-  inputSchema: z.object({
-    fromDate: z.string(),
-    toDate: z.string(),
-    entityId: z.number(),
-     branchId: z
-      .union([z.number(), z.string(), z.array(z.number())])
-      .optional()
-      .default(0)
-      .describe("Branch ID or multiple IDs"),
-    customerId: z.number(),
-  }),
+inputSchema: z.object({
+  fromDate: z.string().describe("Start date YYYY-MM-DD"),
+
+  toDate: z.string().describe("End date YYYY-MM-DD"),
+
+  entityId: z.number().describe("Entity ID"),
+
+  branchIds: z.union([
+    z.number(),
+    z.array(z.number()),
+    z.string()
+  ]).describe(
+    "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
+  ),
+
+  customerId: z.number().describe("Customer ID"),
+
+  groupBy: z.array(
+    z.union([
+      z.literal(1).transform(() => 1), // day
+      z.literal(2).transform(() => 2), // hour
+      z.literal(3).transform(() => 3), // session
+      z.literal(4).transform(() => 4), // category
+      z.literal(5).transform(() => 5), // revenue center
+      z.literal(6).transform(() => 6), // product
+    ])
+  )
+    .default([1])
+    .describe(
+      "Fields to group by. Pass numeric IDs only:\n" +
+      "1 = day\n" +
+      "2 = hour\n" +
+      "3 = session\n" +
+      "4 = category\n" +
+      "5 = revenue center\n" +
+      "6 = product\n" +
+      "Example: [1], [1,3], [4,6]"
+    ),
+
+  Week_Array: z.array(
+    z.object({
+      WEEK_START_DATE: z.string().describe(
+        "Week start date in YYYY-MM-DD format"
+      ),
+
+      WEEK_END_DATE: z.string().describe(
+        "Week end date in YYYY-MM-DD format"
+      ),
+    })
+  )
+    .default([])
+    .describe(
+      "Array of custom weekly date ranges used for week-over-week comparisons"
+    ),
+
+  Month_Array: z.array(
+    z.object({
+      MONTH_START_DATE: z.string().describe(
+        "Month start date in YYYY-MM-DD format"
+      ),
+
+      MONTH_END_DATE: z.string().describe(
+        "Month end date in YYYY-MM-DD format"
+      ),
+    })
+  )
+    .default([])
+    .describe(
+      "Array of custom monthly date ranges used for month-over-month comparisons"
+    ),
+
+  Period_Array: z.array(
+    z.object({
+      PERIOD_START_DATE: z.string().describe(
+        "Custom period start date in YYYY-MM-DD format"
+      ),
+
+      PERIOD_END_DATE: z.string().describe(
+        "Custom period end date in YYYY-MM-DD format"
+      ),
+    })
+  )
+    .default([])
+    .describe(
+      "Array of arbitrary custom date ranges used for flexible reporting comparisons"
+    ),
+}),
 
   handler: async (input: any) => {
     const res = await getPaymentHandler(input);

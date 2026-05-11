@@ -1,22 +1,40 @@
-import { getDb } from "../clients/db-client";
 import sql from "mssql";
+import { getDb } from "../clients/db-client";
 
-export async function getPaymentHandler(input: any) {
+export async function getCheckWiseSalesSummaryHandler(input: {
+  Month_Array: any[];
+  Period_Array: any[];
+  Week_Array: any[];
+
+  fromDate: string;
+  toDate: string;
+
+  entityId?: number;
+  branchIds?: number | number[];
+  customerId?: number;
+
+  groupBy?: string[] | string;
+}) {
   try {
     const db = getDb();
-    console.log("Payments Tool Called");
+
+    console.log("Check Wise Sales Summary Tool Called");
+
+    // ─────────────────────────────────────────────
+    // BRANCH IDS
+    // ─────────────────────────────────────────────
+
     let branchIds: string | null = null;
-    if (input.branchId !== undefined && input.branchId !== null) {
-      if (Array.isArray(input.branchId)) {
-        // e.g. [1,2,3] → "1,2,3"
-        branchIds = input.branchId.join(",");
+
+    if (input.branchIds !== undefined && input.branchIds !== null) {
+      if (Array.isArray(input.branchIds)) {
+        branchIds = input.branchIds.join(",");
       } else {
-        // single value → "1"
-        branchIds = String(input.branchId);
+        branchIds = String(input.branchIds);
       }
     }
 
- // ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────
     // GROUP BY
     // ─────────────────────────────────────────────
 
@@ -71,6 +89,7 @@ export async function getPaymentHandler(input: any) {
     // ─────────────────────────────────────────────
     // EXECUTE SP
     // ─────────────────────────────────────────────
+
     const result = await db
       .request()
       .input("PI_START_DATE", input.fromDate || null)
@@ -79,11 +98,35 @@ export async function getPaymentHandler(input: any) {
       .input("PI_BRANCH_ID", branchIds ?? null)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .input("PI_GROUP_BY", groupBy ?? null)
-      .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable)
-      .execute("PRC_MCP_GET_PAYMENT_METHOD_WISE_SALES_SUMMARY");
+      .input(
+        "PI_MCP_DATES_TYPE",
+        sql.TVP("MCP_DATES_TYPE"),
+        datesTable
+      )
+      .execute("PRC_MCP_GET_CHECK_WISE_SALES_SUMMARY");
 
-    return { result: result.recordset ?? [], isError: false, error: null };
+    // ─────────────────────────────────────────────
+    // RESPONSE
+    // ─────────────────────────────────────────────
+
+    const rows: any[] = Array.from(
+      (result.recordsets as any)?.[0] ?? []
+    );
+
+    return {
+      result: rows,
+      raw: result.recordsets,
+      totalRows: rows.length,
+      isError: false,
+      error: null,
+    };
   } catch (err: any) {
-    return { result: null, isError: true, error: err.message };
+    console.error("CHECK WISE SALES SUMMARY SP ERROR:", err);
+
+    return {
+      result: null,
+      isError: true,
+      error: err.message,
+    };
   }
 }

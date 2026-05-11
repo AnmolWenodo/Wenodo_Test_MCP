@@ -1,77 +1,75 @@
 import { z } from "zod";
 import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-lines.handler";
+import { getCheckWiseSalesSummaryHandler } from "../../handlers/get-checkwise-summary.handler";
 
-export const getSalesInvoiceLinesTool = {
-  name: "get-sales-lines-summary",
-  description: `
-Fetch detailed check / invoice / bill-level sales data from the EPOS system.
+export const getCheckWiseSalesSummaryTool = {
+  name: "get-check-wise-sales-summary",
+  description: `Fetch detailed information for a specific POS check / invoice / bill.
 
-This tool returns detailed check-wise transactional data, where each row represents a complete POS check / invoice / customer bill.
+Use this tool whenever the user asks about:
 
----
-
-### ✅ When to use this tool
-
-Use this tool only if the user asks for:
-
-📄 Check / Invoice Detail Queries
-specific check detail
-invoice breakdown
+check detail
+invoice detail
 bill detail
 receipt detail
 transaction detail
 order detail
-customer bill detail
 POS check information
-payment breakdown for a bill
-tax / discount detail for an invoice
-guest / cashier detail for a transaction
+check breakdown
+invoice breakdown
+bill breakdown
+item level detail for a check
+payment detail for a check
+tax detail for a bill
+discount detail for an invoice
+specific check information
 
-📊 Check-Level Analysis Queries
-top bills
-highest value invoices
-check-wise revenue
-average bill analysis
-check-wise sales comparison
-invoice-wise trends
-branch-wise bill analysis
-cashier-wise invoice performance
-hourly invoice trends
-daily transaction summaries
+Examples:
 
----
+"Show detail for check 1205"
+"Get invoice INV-1001 detail"
+"Show bill breakdown for yesterday"
+"What items were in check 550?"
+"Show payment split for invoice 2001"
+"Tax and discount detail for check 900"
 
 ### 📊 Data Structure
 
+Each row represents aggregated check-level sales data grouped dynamically based on the groupBy parameter.
 
-⚠️ Important Behavior
+Core Metrics
+  NET → Total net sales amount
+  GROSS → Total gross sales amount
+  TAX → Total tax amount
+  DISCOUNT → Total discount amount
+  VOID → Total void amount
+  QUANITY → Total quantity sold
 
-Data may already be aggregated depending on groupBy selection.
+Check Information
+  CHECK_NO → POS check / bill number
 
-Each row can represent:
-- individual checks
-- grouped invoice summaries
-- branch summaries
-- cashier summaries
-- hourly or daily invoice summaries
+Date Range
+  START_DATE → Query start date
+  END_DATE → Query end date
 
-Fields included depend on the groupBy parameter.
+Entity & Branch
+  ENTITY_ID → Entity identifier
+  BRANCH_ID → Branch identifier
+  ENTITY_NAME → Entity name
+  BRANCH_NAME → Branch name
 
-Missing dimensions may appear as:
-- NULL
-- empty values
-- default values like "Unknown"
+The tool returns:
 
----
-
----
-
-### 📌 Notes
-
-- Always convert natural language dates → YYYY-MM-DD
-- Use this tool when check-level visibility or invoice-level analysis is required
-- Prefer this tool over sales-summary tools when the user asks for bill / invoice / receipt level detail
-`,
+Check / invoice information
+Item level details
+Quantity and prices
+Discounts and taxes
+Payment details
+Guest count
+Employee / cashier
+Branch and revenue center
+Open / close timestamps
+Net / gross amounts`,
 
 inputSchema: z.object({
   fromDate: z.string().describe("Start date YYYY-MM-DD"),
@@ -161,7 +159,7 @@ inputSchema: z.object({
     ),
 }),
   handler: async (input: any) => {
-    const res = await getSalesInvoiceLinesHandler(input);
+    const res = await getCheckWiseSalesSummaryHandler(input);
 
     if (res.result) {
       const safeData = res.result;
