@@ -31,18 +31,32 @@ Use this tool when the user asks for:
 
 Each record represents a **single payment entry linked to an invoice**.
 
-Fields include:
+### 📊 Data Structure
 
-- EPOS_SALES_PAYMENT_ID → Unique payment record ID  
-- EPOS_SALES_HEADER_ID → Invoice ID (multiple payments can belong to one invoice)  
-- PAYMENT_METHOD_ID → Unique identifier of payment method  
-- PAYMENT_METHOD_CODE → Specific method (e.g., VISA, MASTERCARD, AMERICAN_EXPRESS)  
-- PAYMENT_METHOD_DESC → Payment type (e.g., CARD, CASH, EXTERNAL)  
-- TOTAL_AMOUNT_WITH_TIPS → Total amount paid including tips  
-- TIPS → Tip amount (if any)  
-- CASHUP_DATE → Business date of transaction  
-- ENTITY_ID / ENTITY_NAME → Organization name  
-- BRANCH_ID / BRANCH_NAME → Location  
+Each row represents aggregated payment-level sales data grouped dynamically based on the groupBy parameter.
+
+Core Metrics
+  TOTAL_AMOUNT_WITH_TIPS → Total collected amount including tips
+  TIPS → Total tips collected
+
+Date Range
+  START_DATE → Query start date
+  END_DATE → Query end date
+
+Entity & Branch
+  ENTITY_ID → Entity identifier
+  BRANCH_ID → Branch identifier
+  ENTITY_NAME → Entity name
+  BRANCH_NAME → Branch name
+
+Payment Information
+  PAYMENT_METHOD_DESC → Payment method description
+    Examples:
+    - Cash
+    - Credit
+    - Debit
+    - Wallet
+    - Online
 
 ---
 
@@ -82,21 +96,8 @@ To generate insights:
 
 ---
 
-### Example Outputs:
-
-#### Payment by Type:
-[
-  { "type": "CARD", "amount": 450 },
-  { "type": "CASH", "amount": 20 },
-  { "type": "EXTERNAL", "amount": 39 }
-]
-
-#### Payment by Method:
-[
-  { "method": "VISA", "amount": 300 },
-  { "method": "MASTERCARD", "amount": 120 },
-  { "method": "AMERICAN_EXPRESS", "amount": 56 }
-]
+### Group By : 
+ Always Use [7] in groupBy to get payment method breakdowns.
 
 ---
 
