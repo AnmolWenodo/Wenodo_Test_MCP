@@ -20,7 +20,7 @@ export async function getEmployeesHandler(input: any) {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", branchIds ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
-      .execute("PRC_GET_MCP_DATA_EMPLOYEES");
+      .execute("PRC_MCP_GET_EMPLOYEES_DATA");
 
     return { result: result.recordset ?? [], isError: false, error: null };
   } catch (err: any) {
