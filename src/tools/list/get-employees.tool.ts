@@ -14,7 +14,7 @@ Use when user asks:
 
   inputSchema: z.object({
     entityId: z.number(),
-     branchId: z
+     branchIds: z
       .union([z.number(), z.string(), z.array(z.number())])
       .optional()
       .default(0)

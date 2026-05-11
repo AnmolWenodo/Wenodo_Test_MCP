@@ -17,5 +17,5 @@ export const listTools = [
   // getCoversTool,
   getPaymentsTool,
   // getDiscountsTool,
-  // getEmployeesTool,
+  getEmployeesTool,
 ];
