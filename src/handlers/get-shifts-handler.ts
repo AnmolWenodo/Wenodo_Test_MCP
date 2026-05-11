@@ -24,7 +24,6 @@ export async function getShiftHandler(input: any) {
       .input("PI_END_DATE", input.toDate)
       .execute("PRC_MCP_GET_EMPLOYEE_SHIFTS_DATA");
 
-      console.log(result);
       
 
     return { result: result.recordset ?? [], isError: false, error: null };

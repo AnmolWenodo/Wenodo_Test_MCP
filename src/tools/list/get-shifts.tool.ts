@@ -217,7 +217,7 @@ User: "Department staffing for Reservations"
       content: [
         {
           type: "text",
-          text: JSON.stringify(res.result),
+          text: res.result,
         },
       ],
     };
