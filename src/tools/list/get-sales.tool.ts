@@ -24,6 +24,9 @@ Use this tool when the user asks for:
 - sales by category
 - sales by revenue center
 - business performance
+- Covers details by year/ month / date
+- Tips details by year/ month / date
+- Discounts details by year/ month / date
 
 ---
 
