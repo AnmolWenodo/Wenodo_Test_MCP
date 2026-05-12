@@ -5,13 +5,13 @@ export async function getEmployeesHandler(input: any) {
     const db = getDb();
     console.log("Employees Tool Called");
      let branchIds: string | null = null;
-     if (input.branchId !== undefined && input.branchId !== null) {
-      if (Array.isArray(input.branchId)) {
+     if (input.branchIds !== undefined && input.branchIds !== null) {
+      if (Array.isArray(input.branchIds)) {
         // e.g. [1,2,3] → "1,2,3"
-        branchIds = input.branchId.join(",");
+        branchIds = input.branchIds.join(",");
       } else {
         // single value → "1"
-        branchIds = String(input.branchId);
+        branchIds = String(input.branchIds);
       }
     }
 
@@ -21,6 +21,7 @@ export async function getEmployeesHandler(input: any) {
       .input("PI_BRANCH_ID", branchIds ?? 0)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .execute("PRC_MCP_GET_EMPLOYEES_DATA");
+
 
     return { result: result.recordset ?? [], isError: false, error: null };
   } catch (err: any) {

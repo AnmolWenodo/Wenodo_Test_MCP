@@ -172,7 +172,7 @@ Supported values:
 11 → Shift (SHIFT_NAME)
 12 → Pay Type (PAY_TYPE)
 13 → Business Date (BUSINESS_DATE)
-14 → Employee (EMPLOYEE_NUMBER, EMPLOYEE_NAME)
+14 → Employee (EMPLOYEE_NUMBER, EMPLOYEE_NAME) for specific employee analysis
 
 ---
 
