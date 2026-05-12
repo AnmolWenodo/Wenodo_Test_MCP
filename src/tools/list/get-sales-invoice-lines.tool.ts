@@ -26,6 +26,7 @@ POS check information
 payment breakdown for a bill
 tax / discount detail for an invoice
 guest / cashier detail for a transaction
+product wise details
 
 📊 Check-Level Analysis Queries
 top bills
@@ -63,6 +64,14 @@ Missing dimensions may appear as:
 - default values like "Unknown"
 
 ---
+Grouping Behavior
+The groupBy parameter controls how data is aggregated:
+- 1 = day: groups data by day, each row is a daily summary
+- 2 = hour: groups data by hour, each row is an hourly summary
+- 3 = session: groups data by session, each row is a session summary
+- 4 = category: groups data by product category, each row is a category summary
+- 5 = revenue center: groups data by revenue center, each row is a revenue center summary
+- 6 = product: groups data by product, each row is a product summary
 
 ---
 
