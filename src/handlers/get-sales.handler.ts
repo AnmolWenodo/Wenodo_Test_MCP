@@ -70,6 +70,7 @@ export async function getSalesHandler(input: {
         // ─────────────────────────────────────────────
         // DEBUG LOG
         // ─────────────────────────────────────────────
+    console.log(datesTable);
     
      
     

@@ -1,19 +1,61 @@
 import { getDb } from "../clients/db-client";
-
+import sql from "mssql";
 export async function getShiftHandler(input: any) {
   try {
     const db = getDb();
     console.log("Shifts Tool Called");
      let branchIds: string | null = null;
-     if (input.branchId !== undefined && input.branchId !== null) {
-      if (Array.isArray(input.branchId)) {
+     if (input.branchIds !== undefined && input.branchIds !== null) {
+      if (Array.isArray(input.branchIds)) {
         // e.g. [1,2,3] → "1,2,3"
-        branchIds = input.branchId.join(",");
+        branchIds = input.branchIds.join(",");
       } else {
         // single value → "1"
-        branchIds = String(input.branchId);
+        branchIds = String(input.branchIds);
       }
     }
+
+     const groupBy = Array.isArray(input.groupBy)
+      ? input.groupBy.join(",") // → "1,3"
+      : String(input.groupBy);
+
+      const datesTable = new sql.Table();
+          datesTable.create = false;
+      
+          datesTable.columns.add("START_DATE", sql.Date);
+          datesTable.columns.add("END_DATE", sql.Date);
+          // ─────────────────────────────────────────────
+          // WEEK ARRAY TVP
+          // ─────────────────────────────────────────────
+      
+          (input.Week_Array || []).forEach((row: any) => {
+            datesTable.rows.add(
+              row.WEEK_START_DATE || null,
+              row.WEEK_END_DATE || null,
+            );
+          });
+      
+          // ─────────────────────────────────────────────
+          // MONTH ARRAY TVP
+          // ─────────────────────────────────────────────
+      
+          (input.Month_Array || []).forEach((row: any) => {
+            datesTable.rows.add(
+              row.MONTH_START_DATE || null,
+              row.MONTH_END_DATE || null,
+            );
+          });
+          // ─────────────────────────────────────────────
+          // PERIOD ARRAY TVP
+          // ─────────────────────────────────────────────
+      
+          (input.Period_Array || []).forEach((row: any) => {
+            datesTable.rows.add(
+              row.PERIOD_START_DATE || null,
+              row.PERIOD_END_DATE || null,
+            );
+          });
+
 
     const result = await db
       .request()
@@ -22,9 +64,23 @@ export async function getShiftHandler(input: any) {
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
        .input("PI_START_DATE", input.fromDate)
       .input("PI_END_DATE", input.toDate)
+      .input("PI_GROUP_BY", groupBy )
+      .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable) 
       .execute("PRC_MCP_GET_EMPLOYEE_SHIFTS_DATA");
 
-      
+      console.log("Input Parameters:");
+      console.log("Entity ID:", input.entityId);
+      console.log("Branch IDs:", branchIds);
+      console.log("Customer ID:", input.customerId);
+      console.log("Start Date:", input.fromDate);
+      console.log("End Date:", input.toDate);
+      console.log("Group By:", groupBy);
+      console.log("Week Array:", input.Week_Array);
+      console.log("Month Array:", input.Month_Array);
+      console.log("Period Array:", input.Period_Array);
+      console.log("Raw DB Result:", datesTable);
+
+      console.log("Shifts Tool Result:", result);
 
     return { result: result.recordset ?? [], isError: false, error: null };
   } catch (err: any) {

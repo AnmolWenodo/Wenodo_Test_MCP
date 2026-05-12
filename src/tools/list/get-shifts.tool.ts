@@ -160,7 +160,42 @@ Some attendance fields may be NULL if the employee has not clocked in/out yet.
 
 ---
 
+### 🧠 Grouping (PI_GROUP_BY)
+
+Pass numeric IDs as an array to control aggregation.
+
+Supported values:
+
+8  → Position (POSITION_NAME)
+9  → Department (DEPARTMENT_NAME)
+10 → Section (SECTION_NAME)
+11 → Shift (SHIFT_NAME)
+12 → Pay Type (PAY_TYPE)
+13 → Business Date (BUSINESS_DATE)
+14 → Employee (EMPLOYEE_NUMBER, EMPLOYEE_NAME)
+
+---
+
 ### 💡 Examples
+
+User: "Labor cost by department"
+→ groupBy: [9]
+
+User: "Shift-wise staffing analysis"
+→ groupBy: [11]
+
+User: "Employee-wise approved hours"
+→ groupBy: [14]
+
+User: "Daily labor summary"
+→ groupBy: [13]
+
+User: "Pay type analysis"
+→ groupBy: [12]
+
+User: "Position-wise staffing"
+→ groupBy: [8]
+
 
 User: "Show today's shifts"
 → Returns scheduled shift records
@@ -197,6 +232,81 @@ User: "Department staffing for Reservations"
       .default(0)
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
+    groupBy: z
+  .array(
+    z.union([
+      z.literal(8).transform(() => 8),   // position
+      z.literal(9).transform(() => 9),   // department
+      z.literal(10).transform(() => 10), // section
+      z.literal(11).transform(() => 11), // shift
+      z.literal(12).transform(() => 12), // pay type
+      z.literal(13).transform(() => 13), // business date
+      z.literal(14).transform(() => 14), // employee
+    ]),
+  )
+  .default([13])
+  .describe(
+    "Fields to group by. Pass numeric IDs only:\n" +
+      "8 = position\n" +
+      "9 = department\n" +
+      "10 = section\n" +
+      "11 = shift\n" +
+      "12 = pay type\n" +
+      "13 = business date\n" +
+      "14 = employee\n" +
+      "Example: [13], [9,13], [8,14]",
+  ),
+
+    Week_Array: z
+      .array(
+        z.object({
+          WEEK_START_DATE: z
+            .string()
+            .describe("Week start date in YYYY-MM-DD format"),
+
+          WEEK_END_DATE: z
+            .string()
+            .describe("Week end date in YYYY-MM-DD format"),
+        }),
+      )
+      .default([])
+      .describe(
+        "Array of custom weekly date ranges used for week-over-week comparisons",
+      ),
+
+    Month_Array: z
+      .array(
+        z.object({
+          MONTH_START_DATE: z
+            .string()
+            .describe("Month start date in YYYY-MM-DD format"),
+
+          MONTH_END_DATE: z
+            .string()
+            .describe("Month end date in YYYY-MM-DD format"),
+        }),
+      )
+      .default([])
+      .describe(
+        "Array of custom monthly date ranges used for month-over-month comparisons",
+      ),
+
+    Period_Array: z
+      .array(
+        z.object({
+          PERIOD_START_DATE: z
+            .string()
+            .describe("Custom period start date in YYYY-MM-DD format"),
+
+          PERIOD_END_DATE: z
+            .string()
+            .describe("Custom period end date in YYYY-MM-DD format"),
+        }),
+      )
+      .default([])
+      .describe(
+        "Array of arbitrary custom date ranges used for flexible reporting comparisons",
+      ),
   }),
 
   handler: async (input: any) => {
