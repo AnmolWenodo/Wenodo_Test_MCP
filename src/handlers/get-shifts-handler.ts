@@ -68,19 +68,7 @@ export async function getShiftHandler(input: any) {
       .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable) 
       .execute("PRC_MCP_GET_EMPLOYEE_SHIFTS_DATA");
 
-      console.log("Input Parameters:");
-      console.log("Entity ID:", input.entityId);
-      console.log("Branch IDs:", branchIds);
-      console.log("Customer ID:", input.customerId);
-      console.log("Start Date:", input.fromDate);
-      console.log("End Date:", input.toDate);
-      console.log("Group By:", groupBy);
-      console.log("Week Array:", input.Week_Array);
-      console.log("Month Array:", input.Month_Array);
-      console.log("Period Array:", input.Period_Array);
-      console.log("Raw DB Result:", datesTable);
-
-      console.log("Shifts Tool Result:", result);
+    
 
     return { result: result.recordset ?? [], isError: false, error: null };
   } catch (err: any) {
