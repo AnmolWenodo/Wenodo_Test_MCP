@@ -10,6 +10,7 @@ import { getPaymentsTool } from "./get-payments.tool";
 import { getCheckWiseSalesSummaryTool } from "./get-checkwise-summary.tool";
 import { getShiftsTool } from "./get-shifts.tool";
 import { getLeavesTool } from "./get-leaves-tool";
+import { getShiftsLineTool } from "./get-shifts-line.tool";
 export const listTools = [
   helloTool,
   getSalesTool,
@@ -22,4 +23,5 @@ export const listTools = [
   getEmployeesTool,
   getShiftsTool,
   getLeavesTool,
+  getShiftsLineTool,
 ];
