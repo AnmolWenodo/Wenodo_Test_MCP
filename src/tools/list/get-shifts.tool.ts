@@ -4,9 +4,9 @@ import { getShiftHandler } from "../../handlers/get-shifts-handler";
 export const getShiftsTool = {
   name: "get-shifts",
   description: `
-Fetch employee shift scheduling, attendance, and labor cost data from the workforce management system.
+Fetch employee staffing, labor cost, and workforce summary data from the workforce management system.
 
-This tool returns shift-level workforce records, where each row represents a scheduled or approved employee shift.
+This tool returns workforce cost and staffing summary records, where each row represents aggregated employee shift, attendance, and labor cost data.
 
 ---
 
@@ -14,211 +14,150 @@ This tool returns shift-level workforce records, where each row represents a sch
 
 Use this tool only if the user asks for:
 
-🕒 Shift & Scheduling Queries
-employee shifts
-scheduled shifts
-staff rota
-duty roster
-shift schedules
-employee attendance
-clock-in / clock-out details
-approved shifts
-shift timing details
-working hours
-
-💰 Labor Cost & Payroll Queries
-labor cost analysis
+💰 Staff Cost & Labor Analysis Queries
+staff cost
+labor cost
+employee cost
+staffing expense
 scheduled labor cost
 approved labor cost
-shift wage analysis
-NIC / pension cost
+labor summary
+staff payroll cost
+shift cost analysis
+NIC / pension cost analysis
 holiday accrual cost
-staffing cost by branch
-department labor analysis
-position-wise labor cost
+workforce expense analysis
 
-📊 Workforce Operations Queries
-branch staffing
+📊 Workforce Summary Queries
+staffing summary
+employee shift summary
 department staffing
-employee availability
-attendance exceptions
-missing clock-ins
-approved vs scheduled shifts
-working hours analysis
+branch staffing analysis
+position-wise staffing
+employee working hours summary
+approved hours analysis
+scheduled vs approved hours
+attendance summary
+daily workforce summary
+
+🕒 Workforce Operations Queries
+who worked today
 staff utilization
+branch workforce analysis
+department labor analysis
+employee scheduling summary
+pay type analysis
+shift summary
+approved shift reporting
 
 ---
 
 ### 📊 Data Structure
 
-Each row represents a single employee shift schedule or attendance record.
+Each row represents aggregated workforce staffing and labor cost data.
 
-Shift Information
-  SCHDL_SHIFT_ID → Shift schedule identifier
-  SHIFT_MASTER_ID → Shift template identifier
-  SHIFT_NAME → Shift name
-  SHIFT_COUNT → Number of shifts
+Core Labor Metrics
+  SCHEDULED_COST → Scheduled labor cost
+  APPROVED_COST → Approved labor cost
+  CLOCKED_IN_COST → Actual labor cost based on attendance
+
+Pension & NIC Metrics
+  SCHEDULED_PENSION → Scheduled pension contribution
+  APPROVED_PENSION → Approved pension contribution
+  CLOCKED_IN_PENSION → Actual pension contribution
+
+  SCHEDULED_NIC → Scheduled NIC contribution
+  APPROVED_NIC → Approved NIC contribution
+  CLOCKED_IN_NIC → Actual NIC contribution
+
+Holiday Accrual Metrics
+  SCHEDULED_HOLIDAY_ACCRUAL_COST → Scheduled holiday accrual cost
+  APPROVED_HOLIDAY_ACCRUAL_COST → Approved holiday accrual cost
+  CLOCKED_IN_HOLIDAY_ACCRUAL_COST → Actual holiday accrual cost
 
 Employee Information
   EMPLY_PRSNL_ID → Employee identifier
+  EMPLOYEE_NUMBER → Employee code
+  EMPLOYEE_NAME → Employee full name
 
 Business & Branch Information
-  BUSINESS_DATE → Business / working date
+  BUSINESS_DATE → Business date
   ENTITY_ID → Entity identifier
   BRANCH_ID → Branch identifier
   ENTITY_NAME → Entity name
   BRANCH_NAME → Branch name
 
 Position & Department
-  POSITION_ID → Position identifier
-  POSITION_NAME → Job position
-  DEPARTMENT_ID → Department identifier
+  POSITION_NAME → Employee position
   DEPARTMENT_NAME → Department name
-  SECTION_ID → Section identifier
   SECTION_NAME → Section name
 
-Scheduled Shift Details
-  SCHEDULED_START → Scheduled start time
-  SCHEDULED_END → Scheduled end time
-  SCHEDULED_DURATION → Scheduled duration in minutes
-  SCHEDULED_PAID_BREAK → Paid break duration
-  SCHEDULED_UNPAID_BREAK → Unpaid break duration
+Shift Information
+  SHIFT_NAME → Shift name
+  SCHEDULED_DURATION → Scheduled shift duration
+  APPROVED_SHIFT_DURATION → Approved shift duration
 
-Clock-In / Attendance Details
+Attendance Information
   CLOCK_IN → Actual clock-in timestamp
   CLOCK_OUT → Actual clock-out timestamp
-  CLOCK_IN_SHIFT_DURATION → Actual worked duration
+  STATUS_NAME → Shift / attendance status
 
-Approved Shift Details
-  APPROVED_CLOCK_IN → Approved start time
-  APPROVED_CLOCK_OUT → Approved end time
-  APPROVED_SHIFT_DURATION → Approved duration
-
-Break Information
-  ACTUAL_BREAK_DURATION → Actual break duration
-  ACTUAL_BREAK_DURATION_EXCLUDING_PAID_BREAK → Actual unpaid break duration
-  ACTUAL_BREAK_TAKEN → Indicates if break was taken
-  APPROVED_BREAK_DURATION → Approved break duration
-  APPROVED_BREAK_DURATION_EXCLUDING_PAID_BREAK → Approved unpaid break duration
-
-Shift Status
-  STATUS_ID → Shift status identifier
-  STATUS_NAME → Shift status
-    Examples:
-    - Approved
-    - Pending
-    - Rejected
-    - Clocked In
-
-Employee Branch
-  EMPLY_BRANCH_ID → Employee home branch identifier
-  EMPLY_BRANCH_NAME → Employee home branch
-
-Labor Cost Metrics
-  SCHEDULED_COST → Scheduled labor cost
-  SCHEDULED_PENSION → Scheduled pension cost
-  SCHEDULED_NIC → Scheduled national insurance contribution
-  SCHEDULED_HOLIDAY_ACCRUAL_COST → Scheduled holiday accrual
-
-Clocked-In Cost Metrics
-  CLOCKED_IN_COST → Actual labor cost based on attendance
-  CLOCKED_IN_PENSION → Actual pension cost
-  CLOCKED_IN_NIC → Actual NIC
-  CLOCKED_IN_HOLIDAY_ACCRUAL_COST → Actual holiday accrual cost
-
-Approved Cost Metrics
-  APPROVED_COST → Approved labor cost
-  APPROVED_PENSION → Approved pension cost
-  APPROVED_NIC → Approved NIC
-  APPROVED_HOLIDAY_ACCRUAL_COST → Approved holiday accrual cost
-
-Wage Information
-  IS_SPECIAL_WAGE → Indicates special wage usage
-  SPECIAL_WAGE → Special wage amount
-  WAGE_TYPE_ID → Wage type identifier
-  PAYTYPE_ID → Pay type identifier
-  PAY_TYPE → Pay type
+Payroll Information
+  PAY_TYPE → Employee pay type
     Examples:
     - Shift Rate
     - Hourly Rate
     - Salary
 
-Availability
-  IS_UNAVAILABLE → Indicates employee unavailability
-
 ⚠️ Important Behavior
 
-Each row represents a single employee shift record.
+Data is generally aggregated depending on the grouping applied.
 
-Data may include:
-- scheduled shifts
-- approved shifts
-- attendance records
-- labor cost calculations
+Each row may represent:
+- employee labor summaries
+- branch staffing summaries
+- department labor summaries
+- daily workforce summaries
+- position-wise staffing summaries
 
-Some attendance fields may be NULL if the employee has not clocked in/out yet.
+Some attendance fields may contain:
+- NULL
+- empty values
 
----
-
-### 🧠 Grouping (PI_GROUP_BY)
-
-Pass numeric IDs as an array to control aggregation.
-
-Supported values:
-
-8  → Position (POSITION_NAME)
-9  → Department (DEPARTMENT_NAME)
-10 → Section (SECTION_NAME)
-11 → Shift (SHIFT_NAME)
-12 → Pay Type (PAY_TYPE)
-13 → Business Date (BUSINESS_DATE)
-14 → Employee (EMPLOYEE_NUMBER, EMPLOYEE_NAME) for specific employee analysis
+Pagination is supported using:
+- pageNo
+- pageSize
 
 ---
 
 ### 💡 Examples
 
-User: "Labor cost by department"
-→ groupBy: [9]
+User: "Staff cost for last month"
+→ Returns workforce labor cost summaries
 
-User: "Shift-wise staffing analysis"
-→ groupBy: [11]
+User: "Department-wise labor analysis"
+→ Group by department
 
-User: "Employee-wise approved hours"
-→ groupBy: [14]
+User: "Branch staffing cost"
+→ Returns branch labor summaries
 
-User: "Daily labor summary"
-→ groupBy: [13]
+User: "Approved labor hours by employee"
+→ Returns employee workforce summaries
+
+User: "Daily staff cost trends"
+→ Returns date-wise labor summaries
 
 User: "Pay type analysis"
-→ groupBy: [12]
-
-User: "Position-wise staffing"
-→ groupBy: [8]
-
-
-User: "Show today's shifts"
-→ Returns scheduled shift records
-
-User: "Which employees missed clock-in?"
-→ Filter where CLOCK_IN is NULL
-
-User: "Labor cost by branch"
-→ Aggregate using APPROVED_COST or SCHEDULED_COST
-
-User: "Approved shifts for London branch"
-→ Filter by STATUS_NAME and BRANCH_NAME
-
-User: "Department staffing for Reservations"
-→ Filter by DEPARTMENT_NAME
+→ Returns labor grouped by PAY_TYPE
 
 ---
 
 ### 📌 Notes
 
-- Use this tool for workforce scheduling, attendance, and labor cost analysis
-- Prefer this tool when the user asks about shifts, staffing, labor expenses, or attendance tracking
-- Time durations are generally stored in minutes
+- Always convert natural language dates → YYYY-MM-DD
+- Use this tool for workforce cost analysis and staffing summaries
+- Prefer this tool when the user asks about labor expenses, staffing cost, workforce summaries, or employee labor analytics
+- Supports paginated retrieval for large datasets
 `,
 
   inputSchema: z.object({
