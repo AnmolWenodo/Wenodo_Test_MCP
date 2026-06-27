@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getDiscountsHandler } from "../../handlers/get-discounts.handler";
-
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getDiscountsTool = {
  name: "get-discounts",
@@ -131,13 +131,14 @@ Common fields include:
       return { content: [{ type: "text", text: `❌ ${res.error}` }] };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(res.result ?? [], null, 2),
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

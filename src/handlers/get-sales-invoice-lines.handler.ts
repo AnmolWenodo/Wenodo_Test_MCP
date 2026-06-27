@@ -1,5 +1,6 @@
 import { getDb } from "../clients/db-client";
 import sql from "mssql";
+import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
 export async function getSalesInvoiceLinesHandler(input: any) {
   try {
@@ -13,9 +14,7 @@ export async function getSalesInvoiceLinesHandler(input: any) {
       : input.branchIds !== undefined && input.branchIds !== null
         ? String(input.branchIds) // single value → "1"
         : null; // undefined or null → null
-    const groupBy = Array.isArray(input.groupBy)
-      ? input.groupBy.join(",") // → "1,3"
-      : String(input.groupBy);
+    const groupBy = formatGroupBy(input.groupBy);
 
     const datesTable = new sql.Table();
     datesTable.create = false;
@@ -57,7 +56,22 @@ export async function getSalesInvoiceLinesHandler(input: any) {
     // ─────────────────────────────────────────────
     // DEBUG LOG
     // ─────────────────────────────────────────────
+ const spCall = await db
+      .request()
+      .input("PI_ID", null)
+      .input("PI_ENTITY_ID", input.entityId ?? 0)
+      .input("PI_BRANCH_ID", null)
+      .input("PI_CUSTOMER_ID", input.customerId ?? 0)
+      .input("PI_USER_ID", input.UserId ?? 0)
+      .input("PI_TEXTS",input.Text ?? "")
+      .input("PI_ACTIVE", 1)
+      .input("PI_SP_NAME", "PRC_MCP_GET_PRODUCT_AND_CATEGORY_WISE_SALES_SUMMARY")
+      .input("PI_VARIABLE", JSON.stringify(formatVariables(input)))
+      .output("PO_ID", sql.Int)
+      .execute("PRC_INS_UPD_MCP_PROCESS_LOG");
 
+     
+      console.log("Logging SP Call Parameters:", spCall.output);
   
 
     // ─────────────────────────────────────────────

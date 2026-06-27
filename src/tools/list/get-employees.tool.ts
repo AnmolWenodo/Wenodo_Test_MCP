@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { getEmployeesHandler } from "../../handlers/get-employees.handler";
+import { validateTenantProtection } from "../../helpers/security";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getEmployeesTool = {
   name: "get-employees",
@@ -135,9 +137,18 @@ User: "Employee contact details"
       .default(0)
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
+    Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getEmployeesHandler(input);
 
     if (res.isError) {
@@ -151,13 +162,14 @@ User: "Employee contact details"
       };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No employees found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-     content: [
-          {
-            type: "text",
-            text: JSON.stringify(res.result),
-          },
-        ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

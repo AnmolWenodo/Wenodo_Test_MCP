@@ -6,7 +6,7 @@ import { connectDB } from "./clients/db-client";
 import zodToJsonSchema from "zod-to-json-schema";
 import { z } from "zod";
 const app = express();
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -87,6 +87,8 @@ async function handleMCPRequest(
           arguments?: any;
         };
 
+        console.log(`🔧 Calling tool: ${name} `);
+
         const tool = toolMap.get(name);
         if (!tool) {
           return {
@@ -96,8 +98,24 @@ async function handleMCPRequest(
           };
         }
 
-        // ✅ Call handler directly
-        const toolResult = await tool.handler(args);
+        // ✅ Enforce input schema validation
+        const parseResult = tool.inputSchema.safeParse(args);
+        if (!parseResult.success) {
+          const errMsg = parseResult.error.issues
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ");
+          return {
+            jsonrpc: "2.0",
+            error: {
+              code: -32602,
+              message: `Invalid parameters: ${errMsg}`,
+            },
+            id,
+          };
+        }
+
+        // ✅ Call handler with validated and transformed arguments
+        const toolResult = await tool.handler(parseResult.data as any);
         result = toolResult;
         break;
       }

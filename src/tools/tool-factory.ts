@@ -7,11 +7,11 @@ export function ToolFactory(server: McpServer) {
   const allTools: MCPTool[] = listTools;
 
   for (const tool of allTools) {
-    server.registerTool(
+    (server as any).registerTool(
       tool.name,
       {
         description: tool.description,
-        inputSchema: tool.inputSchema as unknown as ZodRawShape,
+        inputSchema: tool.inputSchema,
       },
       tool.handler
     );

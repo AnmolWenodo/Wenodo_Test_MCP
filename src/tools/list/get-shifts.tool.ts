@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { getShiftHandler } from "../../handlers/get-shifts-handler";
+import { validateTenantProtection } from "../../helpers/security";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getShiftsTool = {
   name: "get-shifts",
@@ -27,6 +29,7 @@ shift cost analysis
 NIC / pension cost analysis
 holiday accrual cost
 workforce expense analysis
+
 
 📊 Workforce Summary Queries
 staffing summary
@@ -172,29 +175,29 @@ User: "Pay type analysis"
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
     groupBy: z
-  .array(
-    z.union([
-      z.literal(8).transform(() => 8),   // position
-      z.literal(9).transform(() => 9),   // department
-      z.literal(10).transform(() => 10), // section
-      z.literal(11).transform(() => 11), // shift
-      z.literal(12).transform(() => 12), // pay type
-      z.literal(13).transform(() => 13), // business date
-      z.literal(14).transform(() => 14), // employee
-    ]),
-  )
-  .default([13])
-  .describe(
-    "Fields to group by. Pass numeric IDs only:\n" +
-      "8 = position\n" +
-      "9 = department\n" +
-      "10 = section\n" +
-      "11 = shift\n" +
-      "12 = pay type\n" +
-      "13 = business date\n" +
-      "14 = employee\n" +
-      "Example: [13], [9,13], [8,14]",
-  ),
+      .array(
+        z.union([
+          z.literal(8).transform(() => 8), // position
+          z.literal(9).transform(() => 9), // department
+          z.literal(10).transform(() => 10), // section
+          z.literal(11).transform(() => 11), // shift
+          z.literal(12).transform(() => 12), // pay type
+          z.literal(13).transform(() => 13), // business date
+          z.literal(14).transform(() => 14), // employee
+        ]),
+      )
+      .default([13])
+      .describe(
+        "Fields to group by. Pass numeric IDs only:\n" +
+          "8 = position\n" +
+          "9 = department\n" +
+          "10 = section\n" +
+          "11 = shift\n" +
+          "12 = pay type\n" +
+          "13 = business date\n" +
+          "14 = employee\n" +
+          "Example: [13], [9,13], [8,14]",
+      ),
 
     Week_Array: z
       .array(
@@ -246,9 +249,22 @@ User: "Pay type analysis"
       .describe(
         "Array of arbitrary custom date ranges used for flexible reporting comparisons",
       ),
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Optional text parameter for additional context"),
+    UserId: z.number().optional().describe("Optional user ID for context"),
   }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getShiftHandler(input);
 
     if (res.isError) {
@@ -262,13 +278,14 @@ User: "Pay type analysis"
       };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(res.result),
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

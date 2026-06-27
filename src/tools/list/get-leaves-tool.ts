@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getShiftHandler } from "../../handlers/get-shifts-handler";
 import { getLeaveHandler } from "../../handlers/get-leaves-handler";
+import { validateTenantProtection } from "../../helpers/security";
 
 export const getLeavesTool = {
   name: "get-leaves",
@@ -235,9 +236,18 @@ User: "Branch leave trends"
       .describe(
         "Array of arbitrary custom date ranges used for flexible reporting comparisons",
       ),
+      Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getLeaveHandler(input);
 
     if (res.isError) {

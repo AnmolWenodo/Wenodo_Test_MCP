@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getCoversHandler } from "../../handlers/get-covers.handler";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getCoversTool = {
   name: "get-covers",
@@ -172,25 +173,14 @@ To derive insights:
       };
     }
 
-    const data = res.result ?? [];
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
 
-    // 🔥 LIMIT RESULT (IMPORTANT)
-    const safeData = data;
-
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(
-            {
-              count: safeData.length,
-              data: safeData,
-            },
-            null,
-            2
-          ),
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

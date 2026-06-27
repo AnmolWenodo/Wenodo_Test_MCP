@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-lines.handler";
 import { getCheckWiseSalesSummaryHandler } from "../../handlers/get-checkwise-summary.handler";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getCheckWiseSalesSummaryTool = {
   name: "get-check-wise-sales-summary",
@@ -157,30 +158,45 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
+  Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
+  Variables: z
+    .object({
+      customerId: z.number(),
+      entityId: z.number(),
+      branchIds: z.array(z.number()),
+      startDate: z.string(),
+      endDate: z.string(),
+      groupBy: z.array(z.number()),
+
+      Week_Array: z.array(
+        z.object({
+          WEEK_START_DATE: z.string(),
+          WEEK_END_DATE: z.string(),
+        })
+      ),
+
+      Month_Array: z.array(z.any()),
+
+      Period_Array: z.array(z.any()),
+    })
+    .describe("Filter variables object"),
 }),
   handler: async (input: any) => {
     const res = await getCheckWiseSalesSummaryHandler(input);
 
-    if (res.result) {
-      const safeData = res.result;
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(safeData, null, 2),
-          },
-        ],
-      };
+    if (res.isError) {
+      return { content: [{ type: "text", text: `❌ ${res.error}` }] };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: "No data found",
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

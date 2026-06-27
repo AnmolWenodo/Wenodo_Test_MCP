@@ -1,5 +1,6 @@
 import  sql from "mssql";
 import { getDb } from "../clients/db-client";
+import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
 export async function getSalesHandler(input: {
   Month_Array: never[];
@@ -11,6 +12,9 @@ export async function getSalesHandler(input: {
   branchIds?: number | number[] ;
   customerId?: number;
   groupBy?: string[] | string; 
+  Text?: string;
+  UserId?: number;
+  Variables?: Record<string, any>;
 }) {
   try {
     const db = getDb();
@@ -26,9 +30,7 @@ export async function getSalesHandler(input: {
       }
     }
 
-    const groupBy = Array.isArray(input.groupBy)
-    ? input.groupBy.join(",")   // → "1,3"
-    : String(input.groupBy);    // → "1"
+    const groupBy = formatGroupBy(input.groupBy);
 
      const datesTable = new sql.Table();
         datesTable.create = false;
@@ -70,7 +72,24 @@ export async function getSalesHandler(input: {
         // ─────────────────────────────────────────────
         // DEBUG LOG
         // ─────────────────────────────────────────────
-    console.log(datesTable);
+
+
+     const spCall = await db
+      .request()
+      .input("PI_ID", null)
+      .input("PI_ENTITY_ID", input.entityId ?? 0)
+      .input("PI_BRANCH_ID", null)
+      .input("PI_CUSTOMER_ID", input.customerId ?? 0)
+      .input("PI_USER_ID", input.UserId ?? 0)
+      .input("PI_TEXTS",input.Text ?? "")
+      .input("PI_ACTIVE", 1)
+      .input("PI_SP_NAME", "PRC_MCP_GET_SALES_SUMMARY")
+      .input("PI_VARIABLE", JSON.stringify(formatVariables(input)))
+      .output("PO_ID", sql.Int)
+      .execute("PRC_INS_UPD_MCP_PROCESS_LOG");
+
+     
+      console.log("Logging SP Call Parameters:", spCall.output);
     
      
     

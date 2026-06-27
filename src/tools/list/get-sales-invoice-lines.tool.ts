@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-lines.handler";
+import { validateTenantProtection } from "../../helpers/security";
+import { groupBySchema } from "../../helpers/schemas";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getSalesInvoiceLinesTool = {
   name: "get-sales-lines-summary",
@@ -41,45 +44,30 @@ hourly invoice trends
 daily transaction summaries
 
 ---
-
-### 📊 Data Structure
-
-
-⚠️ Important Behavior
-
-Data may already be aggregated depending on groupBy selection.
-
-Each row can represent:
-- individual checks
-- grouped invoice summaries
-- branch summaries
-- cashier summaries
-- hourly or daily invoice summaries
-
-Fields included depend on the groupBy parameter.
-
-Missing dimensions may appear as:
-- NULL
-- empty values
-- default values like "Unknown"
-
----
-Grouping Behavior
-The groupBy parameter controls how data is aggregated:
-- 1 = day: groups data by day, each row is a daily summary
-- 2 = hour: groups data by hour, each row is an hourly summary
-- 3 = session: groups data by session, each row is a session summary
-- 4 = category: groups data by product category, each row is a category summary
-- 5 = revenue center: groups data by revenue center, each row is a revenue center summary
-- 6 = product: groups data by product, each row is a product summary
+Use this tool ONLY when:
+1. The user asks for detailed check/bill/invoice metrics.
+2. The user specifically requests "invoice details", "bill-level summaries", or transactional line-items.
+3. You need to drill down into a specific transaction to check what was sold or how it was paid.
 
 ---
 
-### 📌 Notes
+### ❌ Do NOT use this tool when
+- You only need aggregate summaries or store-wide trends (totals, category performance, shifts, tips). Use **get-sales-header-summary** instead.
 
-- Always convert natural language dates → YYYY-MM-DD
-- Use this tool when check-level visibility or invoice-level analysis is required
-- Prefer this tool over sales-summary tools when the user asks for bill / invoice / receipt level detail
+---
+
+### 📊 Columns / Metrics returned
+- **Check-level identifiers**: \`CHECK_HEADER_ID\` (Invoice ID), \`CHECK_NO\` (Bill number), \`CHECK_DATE\`, \`CHECK_OPEN_TIME\`, \`CHECK_CLOSE_TIME\`
+- **Metadata**: \`BRANCH_NAME\`, \`REVENUE_CENTER_NAME\`, \`TABLE_NAME\`, \`WAITER_NAME\`
+- **Totals**: \`GROSS\`, \`DISCOUNT\`, \`NET\`, \`TAX\`, \`SERVICE_CHARGE\`, \`COVERS\`
+- **Status flags**: \`VOID_CHECK\` (1 = cancelled/voided, 0 = active)
+
+---
+
+### 💡 Example queries:
+- "Show me all invoices from the Grand Divan on June 1st"
+- "List the gross totals and bill numbers for shift 1234"
+- "What time did check #999 close?"
 `,
 
 inputSchema: z.object({
@@ -99,27 +87,7 @@ inputSchema: z.object({
 
   customerId: z.number().describe("Customer ID"),
 
-  groupBy: z.array(
-    z.union([
-      z.literal(1).transform(() => 1), // day
-      z.literal(2).transform(() => 2), // hour
-      z.literal(3).transform(() => 3), // session
-      z.literal(4).transform(() => 4), // category
-      z.literal(5).transform(() => 5), // revenue center
-      z.literal(6).transform(() => 6), // product
-    ])
-  )
-    .default([1])
-    .describe(
-      "Fields to group by. Pass numeric IDs only:\n" +
-      "1 = day\n" +
-      "2 = hour\n" +
-      "3 = session\n" +
-      "4 = category\n" +
-      "5 = revenue center\n" +
-      "6 = product\n" +
-      "Example: [1], [1,3], [4,6]"
-    ),
+  groupBy: groupBySchema,
 
   Week_Array: z.array(
     z.object({
@@ -168,28 +136,41 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
+    Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
 }),
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getSalesInvoiceLinesHandler(input);
 
-    if (res.result) {
-      const safeData = res.result;
-
+    if (res.isError) {
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(safeData, null, 2),
+            text: `❌ ${res.error}`,
           },
         ],
       };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
       content: [
         {
           type: "text",
-          text: "No data found",
+          text: JSON.stringify(optimized, null, 2),
         },
       ],
     };

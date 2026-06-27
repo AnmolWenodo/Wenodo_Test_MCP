@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { getSalesHandler } from "../../handlers/get-sales.handler";
 import { log } from "node:console";
+import { validateTenantProtection } from "../../helpers/security";
+
+import { optimizeSalesSummary } from "../../helpers/optimize";
+
+import { groupBySchema } from "../../helpers/schemas";
 
 export const getSalesTool = {
   name: "get-sales-header-summary",
@@ -102,27 +107,7 @@ inputSchema: z.object({
 
   customerId: z.number().describe("Customer ID"),
 
-  groupBy: z.array(
-    z.union([
-      z.literal(1).transform(() => 1), // day
-      z.literal(2).transform(() => 2), // hour
-      z.literal(3).transform(() => 3), // session
-      z.literal(4).transform(() => 4), // category
-      z.literal(5).transform(() => 5), // revenue center
-      z.literal(6).transform(() => 6), // product
-    ])
-  )
-    .default([1])
-    .describe(
-      "Fields to group by. Pass numeric IDs only:\n" +
-      "1 = day\n" +
-      "2 = hour\n" +
-      "3 = session\n" +
-      "4 = category\n" +
-      "5 = revenue center\n" +
-      "6 = product\n" +
-      "Example: [1], [1,3], [4,6]"
-    ),
+  groupBy: groupBySchema,
 
   Week_Array: z.array(
     z.object({
@@ -171,9 +156,18 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
+  Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
 }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getSalesHandler(input);
 
     if (res.isError) {
@@ -182,28 +176,21 @@ inputSchema: z.object({
       };
     }
 
-   if (!res.result) {
+    if (!res.result) {
       return {
         content: [{ type: "text", text: "No sales found" }],
       };
     }
 
-   return {
+    const optimized = optimizeSalesSummary(res.result as any[][]);
 
-   
-  content: [
-    {
-      type: "text",
-      text: JSON.stringify(
+    return {
+      content: [
         {
-          count: res.result.length,
-          data: res.result
+          type: "text",
+          text: JSON.stringify(optimized, null, 2),
         },
-        null,
-        2
-      ),
-    },
-  ],
-};
+      ],
+    };
   },
 };

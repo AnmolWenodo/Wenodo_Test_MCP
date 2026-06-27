@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { getCoversHandler } from "../../handlers/get-covers.handler";
 import { getPaymentHandler } from "../../handlers/get-payments.handler";
+import { validateTenantProtection } from "../../helpers/security";
+import { optimizeTable } from "../../helpers/optimize";
+import { paymentsGroupBySchema } from "../../helpers/schemas";
 
 
 export const getPaymentsTool = {
@@ -54,69 +57,34 @@ Payment Information
     Examples:
     - Cash
     - Credit
-    - Debit
-    - Wallet
-    - Online
+#### If no GroupBy:
+- Raw transaction data (invoice / Header-level payment details)
+- Multiple rows per invoice possible
+
+#### If GroupBy is used:
+- Aggregated payment data
+- Each row represents grouped results
+
+Common metrics:
+- PAY_AMOUNT → Payment amount
+- TIPS → Tips collected
+- SERVICE_CHARGE → Service charge amount
+- COVERS → Number of customers
 
 ---
 
-### Important Behavior:
+### Example Use Cases:
 
-- Data is **line-level (NOT aggregated)**
-- One invoice can have **multiple payment records** (split payments)
-- PAYMENT_METHOD_DESC represents high-level type:
-  - CARD
-  - CASH
-  - EXTERNAL
-- PAYMENT_METHOD_CODE gives detailed breakdown (VISA, MASTERCARD, etc.) :contentReference[oaicite:0]{index=0}  
-
----
-
-
-
-### Example Interpretation:
-
-- VISA → £44  
-- MASTERCARD → £26  
-- CASH → £0  
-- AMERICAN EXPRESS → £26  
-
-→ Indicates majority payments are via **card methods**
-
----
-
-### Common Aggregations:
-
-To generate insights:
-
-- Total Payments → SUM(TOTAL_AMOUNT_WITH_TIPS)
-- Payments by Type → group by PAYMENT_METHOD_DESC
-- Payments by Method → group by PAYMENT_METHOD_CODE
-- Tips → SUM(TIPS)
-
----
-
-### Group By : 
- Always Use [7] in groupBy to get payment method breakdowns.
-
----
-
-### Use Cases:
-
-- Analyze payment preferences (cash vs card)
-- Track digital vs physical payments
-- Monitor tips collected
-- Build payment distribution charts
-- Detect anomalies (e.g., zero cash usage)
+- Payment breakdowns by method (group by payment method)
+- Payment trends over time (group by date)
+- Payment performance by revenue center
 
 ---
 
 ### Notes:
 
-- This tool returns raw payment data (aggregation required)
-- CASH entries may have zero value if not used
-- EXTERNAL may represent third-party payments
-- Ideal for financial analysis and dashboards
+- Use this tool specifically for payment analysis
+- Always compute totals if user asks for totals
 `,
 
 inputSchema: z.object({
@@ -136,27 +104,7 @@ inputSchema: z.object({
 
   customerId: z.number().describe("Customer ID"),
 
-  groupBy: z.array(
-    z.union([
-      z.literal(1).transform(() => 1), // day
-      z.literal(2).transform(() => 2), // hour
-      z.literal(3).transform(() => 3), // session
-      z.literal(4).transform(() => 4), // category
-      z.literal(5).transform(() => 5), // revenue center
-      z.literal(6).transform(() => 6), // product
-    ])
-  )
-    .default([1])
-    .describe(
-      "Fields to group by. Pass numeric IDs only:\n" +
-      "1 = day\n" +
-      "2 = hour\n" +
-      "3 = session\n" +
-      "4 = category\n" +
-      "5 = revenue center\n" +
-      "6 = product\n" +
-      "Example: [1], [1,3], [4,6]"
-    ),
+  groupBy: paymentsGroupBySchema,
 
   Week_Array: z.array(
     z.object({
@@ -205,22 +153,32 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
+  Text : z.string().describe("Additional context or instructions for the query"),
+  UserId : z.number().describe("User ID for permission checks and personalization"),
 }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getPaymentHandler(input);
 
     if (res.isError) {
       return { content: [{ type: "text", text: `❌ ${res.error}` }] };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(res.result?.slice(0, 50) ?? [], null, 2),
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };

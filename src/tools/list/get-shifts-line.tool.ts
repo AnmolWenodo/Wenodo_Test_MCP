@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { getShiftsLine } from "../../handlers/get-shifts-lines.handler";
+import { validateTenantProtection } from "../../helpers/security";
+import { optimizeTable } from "../../helpers/optimize";
 
 export const getShiftsLineTool = {
   name: "get-shift-lines",
@@ -216,20 +218,14 @@ User: "Employee shift history"
     branchIds: z
       .union([z.number(), z.array(z.number()), z.string()])
       .describe(
-        "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
+        "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'",
       ),
 
     customerId: z.number().describe("Customer ID"),
 
-    pageNo: z
-      .number()
-      .default(1)
-      .describe("Page number for paginated results"),
+    pageNo: z.number().default(1).describe("Page number for paginated results"),
 
-    pageSize: z
-      .number()
-      .default(50)
-      .describe("Number of records per page"),
+    pageSize: z.number().default(50).describe("Number of records per page"),
 
     Week_Array: z
       .array(
@@ -241,11 +237,11 @@ User: "Employee shift history"
           WEEK_END_DATE: z
             .string()
             .describe("Week end date in YYYY-MM-DD format"),
-        })
+        }),
       )
       .default([])
       .describe(
-        "Array of custom weekly date ranges used for week-over-week comparisons"
+        "Array of custom weekly date ranges used for week-over-week comparisons",
       ),
 
     Month_Array: z
@@ -258,11 +254,11 @@ User: "Employee shift history"
           MONTH_END_DATE: z
             .string()
             .describe("Month end date in YYYY-MM-DD format"),
-        })
+        }),
       )
       .default([])
       .describe(
-        "Array of custom monthly date ranges used for month-over-month comparisons"
+        "Array of custom monthly date ranges used for month-over-month comparisons",
       ),
 
     Period_Array: z
@@ -275,37 +271,50 @@ User: "Employee shift history"
           PERIOD_END_DATE: z
             .string()
             .describe("Custom period end date in YYYY-MM-DD format"),
-        })
+        }),
       )
       .default([])
       .describe(
-        "Array of arbitrary custom date ranges used for flexible reporting comparisons"
+        "Array of arbitrary custom date ranges used for flexible reporting comparisons",
       ),
+
+    Text: z
+      .string()
+      .describe("Additional context or instructions for the query"),
+    UserId: z
+      .number()
+      .describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getShiftsLine(input);
 
-    if (res.result) {
-      const safeData = res.result;
-
+    if (res.isError) {
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(safeData, null, 2),
+            text: `❌ ${res.error}`,
           },
         ],
       };
     }
 
+    const rows = Array.isArray(res.result) ? res.result : [];
+    if (rows.length === 0) {
+      return { content: [{ type: "text", text: "No data found" }] };
+    }
+
+    const optimized = optimizeTable(rows);
     return {
-      content: [
-        {
-          type: "text",
-          text: "No data found",
-        },
-      ],
+      content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }],
     };
   },
 };
