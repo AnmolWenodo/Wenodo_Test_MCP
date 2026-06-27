@@ -97,8 +97,12 @@ inputSchema: z.object({
       z.literal(4).transform(() => 4), // category
       z.literal(5).transform(() => 5), // revenue center
       z.literal(6).transform(() => 6), // product
+      // Catch-all: unknown strings (e.g. "BRANCH_NAME") → null → filtered out
+      z.string().transform((val) => { const n = Number(val); return isNaN(n) ? null : n; }),
+      z.number().transform((val) => val),
     ])
   )
+  .transform((arr) => arr.filter((v): v is number => v !== null))
     .default([1])
     .describe(
       "Fields to group by. Pass numeric IDs only:\n" +
@@ -108,6 +112,7 @@ inputSchema: z.object({
       "4 = category\n" +
       "5 = revenue center\n" +
       "6 = product\n" +
+      "NOTE: No groupBy for Branch/Site — use branchIds for branch filtering.\n" +
       "Example: [1], [1,3], [4,6]"
     ),
 

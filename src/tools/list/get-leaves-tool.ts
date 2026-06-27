@@ -171,8 +171,12 @@ User: "Branch leave trends"
       z.literal(12).transform(() => 12), // pay type
       z.literal(13).transform(() => 13), // business date
       z.literal(14).transform(() => 14), // employee
+      // Catch-all: unknown strings (e.g. "BRANCH_NAME") → null → filtered out
+      z.string().transform((val) => { const n = Number(val); return isNaN(n) ? null : n; }),
+      z.number().transform((val) => val),
     ]),
   )
+  .transform((arr) => arr.filter((v): v is number => v !== null))
   .default([13])
   .describe(
     "Fields to group by. Pass numeric IDs only:\n" +
@@ -183,6 +187,7 @@ User: "Branch leave trends"
       "12 = pay type\n" +
       "13 = business date\n" +
       "14 = employee\n" +
+      "NOTE: No groupBy for Branch/Site — use branchIds for branch filtering.\n" +
       "Example: [13], [9,13], [8,14]",
   ),
 
