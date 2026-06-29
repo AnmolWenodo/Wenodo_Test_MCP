@@ -6,6 +6,7 @@ const config: sql.config = {
   server: process.env.DB_SERVER!,
   database: process.env.DB_DATABASE,
   port: 1433,
+  requestTimeout: 300000,
 
   options: {
     encrypt: process.env.DB_ENCRYPT === "true",

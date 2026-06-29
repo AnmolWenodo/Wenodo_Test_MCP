@@ -137,8 +137,12 @@ User: "Employee contact details"
       .default(0)
       .describe("Branch ID or multiple IDs"),
     customerId: z.number(),
-    Text : z.string().describe("Additional context or instructions for the query"),
-  UserId : z.number().describe("User ID for permission checks and personalization"),
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Additional context or instructions for the query"),
+    UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {

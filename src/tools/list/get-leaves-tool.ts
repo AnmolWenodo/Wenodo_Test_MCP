@@ -9,6 +9,15 @@ export const getLeavesTool = {
 
 This tool returns leave-level workforce records, where each row represents an employee leave / absence entry.
 
+### GROUP BY DIMENSIONS (Pass numeric IDs only):
+- 8 = Position (Leave metrics grouped by job position/title)
+- 9 = Department (Leave metrics grouped by department)
+- 10 = Section (Leave metrics grouped by specific work station)
+- 11 = Shift (Leave metrics grouped by shift template name)
+- 12 = Pay Type (Leave metrics grouped by compensation type, e.g., Hourly Rate, Salary)
+- 13 = Business Date (Leave tracking per day)
+- 14 = Employee (Leaves per individual staff member)
+
 ---
 
 ### ✅ When to use this tool
@@ -241,8 +250,12 @@ User: "Branch leave trends"
       .describe(
         "Array of arbitrary custom date ranges used for flexible reporting comparisons",
       ),
-      Text : z.string().describe("Additional context or instructions for the query"),
-  UserId : z.number().describe("User ID for permission checks and personalization"),
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Additional context or instructions for the query"),
+    UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {

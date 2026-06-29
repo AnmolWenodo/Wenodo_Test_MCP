@@ -7,6 +7,17 @@ export const getCheckWiseSalesSummaryTool = {
   name: "get-check-wise-sales-summary",
   description: `Fetch detailed information for a specific POS check / invoice / bill.
 
+### GROUP BY DIMENSIONS (Pass numeric IDs only):
+- 1 = Day
+- 2 = Hour
+- 3 = Session
+- 4 = Category
+- 5 = Revenue Center
+
+⚠️ WARNING: Do NOT use option 6 (Product) with this tool. It will trigger a database error ('Invalid column name PRODUCT_NAME'). For product-level item sales analysis, use get-sales-lines-summary instead.
+
+---
+
 Use this tool whenever the user asks about:
 
 check detail
@@ -163,8 +174,12 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
-  Text : z.string().describe("Additional context or instructions for the query"),
-  UserId : z.number().describe("User ID for permission checks and personalization"),
+  Text: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Additional context or instructions for the query"),
+  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
   Variables: z
     .object({
       customerId: z.number(),

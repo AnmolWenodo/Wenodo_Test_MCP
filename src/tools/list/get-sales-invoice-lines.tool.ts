@@ -11,6 +11,17 @@ Fetch detailed check / invoice / bill-level sales data from the EPOS system.
 
 This tool returns detailed check-wise transactional data, where each row represents a complete POS check / invoice / customer bill.
 
+### GROUP BY DIMENSIONS (Pass numeric IDs only):
+- 1 = Date / Day
+- 2 = Hour (Hourly sales distribution)
+- 3 = Session (Lunch, Dinner, etc.)
+- 4 = Category (Food, Beverage, Retail, etc.)
+- 5 = Revenue Center (Bar, Lounge, Dining Room)
+- 6 = Product (Highly Important: retrieves quantities and sales numbers of individual products/dishes)
+- 7 = Week
+- 8 = Month
+- 9 = Quarter
+
 ---
 
 ### ✅ When to use this tool
@@ -136,8 +147,12 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
-    Text : z.string().describe("Additional context or instructions for the query"),
-  UserId : z.number().describe("User ID for permission checks and personalization"),
+  Text: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Additional context or instructions for the query"),
+  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
 }),
   handler: async (input: any) => {
     const tenantCheck = validateTenantProtection(input);

@@ -280,10 +280,10 @@ User: "Employee shift history"
 
     Text: z
       .string()
+      .optional()
+      .default("")
       .describe("Additional context or instructions for the query"),
-    UserId: z
-      .number()
-      .describe("User ID for permission checks and personalization"),
+    UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
   }),
 
   handler: async (input: any) => {

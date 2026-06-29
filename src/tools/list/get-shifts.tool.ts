@@ -10,6 +10,15 @@ Fetch employee staffing, labor cost, and workforce summary data from the workfor
 
 This tool returns workforce cost and staffing summary records, where each row represents aggregated employee shift, attendance, and labor cost data.
 
+### GROUP BY DIMENSIONS (Pass numeric IDs only):
+- 8 = Position (Labor metrics grouped by job position/title)
+- 9 = Department (Labor metrics grouped by department)
+- 10 = Section (Labor metrics grouped by specific work station)
+- 11 = Shift (Labor metrics grouped by shift template name)
+- 12 = Pay Type (Labor metrics grouped by compensation type, e.g., Hourly Rate, Salary)
+- 13 = Business Date (Workforce summary per day)
+- 14 = Employee (Workforce summary per staff member)
+
 ---
 
 ### ✅ When to use this tool
@@ -259,7 +268,7 @@ User: "Pay type analysis"
       .optional()
       .default("")
       .describe("Optional text parameter for additional context"),
-    UserId: z.number().optional().describe("Optional user ID for context"),
+    UserId: z.coerce.number().optional().describe("Optional user ID for context"),
   }),
 
   handler: async (input: any) => {

@@ -11,32 +11,25 @@ export const getSalesTool = {
   name: "get-sales-header-summary",
   description:
     `
-Fetch sales data .
+Fetch "site-wide" daily aggregated sales summaries (total revenue, covers, tax, tips, service charge, and void metrics) from the POS system.
 
-This tool retrieves sales summaries of  transactions and supports dynamic aggregation based on grouping parameters such as date, hour, session, categoryand revenue center.
+### WHEN TO USE:
+Use this tool for site-wide sales trends, daily revenue performance, covers analysis, tips analysis, or financial reporting.
 
----
+### GROUP BY DIMENSIONS (Pass numeric IDs only):
+- 1 = Date / Day
+- 3 = Session (Lunch, Dinner, etc.)
+- 4 = Category (Food, Beverage, etc.)
+- 5 = Revenue Center (Dining Room, Bar, Takeaway)
+- 7 = Week
+- 8 = Month
+- 9 = Quarter
 
-### When to use:
-
-Use this tool when the user asks for:
-
-- total sales
-- revenue
-- sales summary
-- sales trends
-- sales by date / time / session
-- sales by category
-- sales by revenue center
-- business performance
-- Covers details by year/ month / date
-- Tips details by year/ month / date
-- Discounts details by year/ month / date
+⚠️ WARNING: Do NOT use option 2 (Hour) with this tool. It will trigger a database error ('Invalid column name HOUR_PART'). For hourly sales metrics, use get-sales-lines-summary instead.
 
 ---
 
 ### Capabilities:
-
 This tool supports both:
 
 **Aggregated Data (Using GroupBy)**
@@ -50,7 +43,6 @@ This tool supports both:
 ---
 
 ### What this tool returns:
-
 #### If no GroupBy:
 - Raw transaction data (invoice / Header-level)
 - Multiple rows per invoice possible
@@ -71,7 +63,6 @@ Common metrics:
 ---
 
 ### Example Use Cases:
-
 - Sales summaries of year / month / date
 - Total sales for a date range
 - Sales trend over time (group by date)
@@ -79,11 +70,10 @@ Common metrics:
 - Category performance analysis
 - Revenue by revenue center
 - Drill-down from summary → transactions
-- houly sales trends where product is not included.
+
 ---
 
 ### Notes:
-
 - This is the primary tool for revenue analysis
 - Use raw data for detailed invoice-header-level queries
 - Always compute totals if user asks for totals
@@ -156,8 +146,12 @@ inputSchema: z.object({
     .describe(
       "Array of arbitrary custom date ranges used for flexible reporting comparisons"
     ),
-  Text : z.string().describe("Additional context or instructions for the query"),
-  UserId : z.number().describe("User ID for permission checks and personalization"),
+  Text: z
+    .string()
+    .optional()
+    .default("")
+    .describe("Additional context or instructions for the query"),
+  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
 }),
 
   handler: async (input: any) => {
