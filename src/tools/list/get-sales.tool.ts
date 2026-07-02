@@ -99,53 +99,55 @@ inputSchema: z.object({
 
   groupBy: groupBySchema,
 
-  Week_Array: z.array(
-    z.object({
-      WEEK_START_DATE: z.string().describe(
-        "Week start date in YYYY-MM-DD format"
-      ),
+  periodTypeId: z.number().optional().describe("Period Type ID 1=Week, 2=Month"),
 
-      WEEK_END_DATE: z.string().describe(
-        "Week end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom weekly date ranges used for week-over-week comparisons"
-    ),
+  // Week_Array: z.array(
+  //   z.object({
+  //     WEEK_START_DATE: z.string().describe(
+  //       "Week start date in YYYY-MM-DD format"
+  //     ),
 
-  Month_Array: z.array(
-    z.object({
-      MONTH_START_DATE: z.string().describe(
-        "Month start date in YYYY-MM-DD format"
-      ),
+  //     WEEK_END_DATE: z.string().describe(
+  //       "Week end date in YYYY-MM-DD format"
+  //     ),
+  //   })
+  // )
+  //   .default([])
+  //   .describe(
+  //     "Array of custom weekly date ranges used for week-over-week comparisons"
+  //   ),
 
-      MONTH_END_DATE: z.string().describe(
-        "Month end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom monthly date ranges used for month-over-month comparisons"
-    ),
+  // Month_Array: z.array(
+  //   z.object({
+  //     MONTH_START_DATE: z.string().describe(
+  //       "Month start date in YYYY-MM-DD format"
+  //     ),
 
-  Period_Array: z.array(
-    z.object({
-      PERIOD_START_DATE: z.string().describe(
-        "Custom period start date in YYYY-MM-DD format"
-      ),
+  //     MONTH_END_DATE: z.string().describe(
+  //       "Month end date in YYYY-MM-DD format"
+  //     ),
+  //   })
+  // )
+  //   .default([])
+  //   .describe(
+  //     "Array of custom monthly date ranges used for month-over-month comparisons"
+  //   ),
 
-      PERIOD_END_DATE: z.string().describe(
-        "Custom period end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of arbitrary custom date ranges used for flexible reporting comparisons"
-    ),
+  // Period_Array: z.array(
+  //   z.object({
+  //     PERIOD_START_DATE: z.string().describe(
+  //       "Custom period start date in YYYY-MM-DD format"
+  //     ),
+
+  //     PERIOD_END_DATE: z.string().describe(
+  //       "Custom period end date in YYYY-MM-DD format"
+  //     ),
+  //   })
+  // )
+  //   .default([])
+  //   .describe(
+  //     "Array of arbitrary custom date ranges used for flexible reporting comparisons"
+  //   ),
   Text: z
     .string()
     .optional()
