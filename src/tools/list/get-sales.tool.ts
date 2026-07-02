@@ -14,7 +14,7 @@ export const getSalesTool = {
 Fetch "site-wide" daily aggregated sales summaries (total revenue, covers, tax, tips, service charge, and void metrics) from the POS system.
 
 ### WHEN TO USE:
-Use this tool for site-wide sales trends, daily revenue performance, covers analysis, tips analysis, or financial reporting.
+Use this tool for site-wide sales trends, daily revenue performance, covers analysis, tips analysis, financial reporting, or period-over-period comparisons.
 
 ### GROUP BY DIMENSIONS (Pass numeric IDs only):
 - 1 = Date / Day
@@ -39,6 +39,13 @@ This tool supports both:
      - trends
      - comparisons
      - charts
+
+**Period-Over-Period Comparisons (Using periodTypeId)**
+   - The database now automatically handles comparison logic (WoW, MoM, YoY).
+   - Do NOT attempt to pass arrays of custom date ranges.
+   - Simply provide the primary \`fromDate\` and \`toDate\`, and set \`periodTypeId\`:
+     - 1 = Week (e.g., Week over Week)
+     - 2 = Month (e.g., Month over Month)
 
 ---
 
@@ -70,6 +77,7 @@ Common metrics:
 - Category performance analysis
 - Revenue by revenue center
 - Drill-down from summary → transactions
+- Week over Week or Month over Month comparisons (using periodTypeId)
 
 ---
 
@@ -80,81 +88,81 @@ Common metrics:
 `,
 
 
-inputSchema: z.object({
-  fromDate: z.string().describe("Start date YYYY-MM-DD"),
+  inputSchema: z.object({
+    fromDate: z.string().describe("Start date YYYY-MM-DD"),
 
-  toDate: z.string().describe("End date YYYY-MM-DD"),
+    toDate: z.string().describe("End date YYYY-MM-DD"),
 
-  entityId: z.number().describe("Entity ID"),
+    entityId: z.number().describe("Entity ID"),
 
-  branchIds: z.union([
-    z.number(),
-    z.array(z.number()),
-    z.string()
-  ]).describe(
-    "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
-  ),
+    branchIds: z.union([
+      z.number(),
+      z.array(z.number()),
+      z.string()
+    ]).describe(
+      "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
+    ),
 
-  customerId: z.number().describe("Customer ID"),
+    customerId: z.number().describe("Customer ID"),
 
-  groupBy: groupBySchema,
+    groupBy: groupBySchema,
 
-  periodTypeId: z.number().optional().describe("Period Type ID 1=Week, 2=Month"),
+    periodTypeId: z.number().optional().describe("Period Type ID 1=Week, 2=Month"),
 
-  // Week_Array: z.array(
-  //   z.object({
-  //     WEEK_START_DATE: z.string().describe(
-  //       "Week start date in YYYY-MM-DD format"
-  //     ),
+    // Week_Array: z.array(
+    //   z.object({
+    //     WEEK_START_DATE: z.string().describe(
+    //       "Week start date in YYYY-MM-DD format"
+    //     ),
 
-  //     WEEK_END_DATE: z.string().describe(
-  //       "Week end date in YYYY-MM-DD format"
-  //     ),
-  //   })
-  // )
-  //   .default([])
-  //   .describe(
-  //     "Array of custom weekly date ranges used for week-over-week comparisons"
-  //   ),
+    //     WEEK_END_DATE: z.string().describe(
+    //       "Week end date in YYYY-MM-DD format"
+    //     ),
+    //   })
+    // )
+    //   .default([])
+    //   .describe(
+    //     "Array of custom weekly date ranges used for week-over-week comparisons"
+    //   ),
 
-  // Month_Array: z.array(
-  //   z.object({
-  //     MONTH_START_DATE: z.string().describe(
-  //       "Month start date in YYYY-MM-DD format"
-  //     ),
+    // Month_Array: z.array(
+    //   z.object({
+    //     MONTH_START_DATE: z.string().describe(
+    //       "Month start date in YYYY-MM-DD format"
+    //     ),
 
-  //     MONTH_END_DATE: z.string().describe(
-  //       "Month end date in YYYY-MM-DD format"
-  //     ),
-  //   })
-  // )
-  //   .default([])
-  //   .describe(
-  //     "Array of custom monthly date ranges used for month-over-month comparisons"
-  //   ),
+    //     MONTH_END_DATE: z.string().describe(
+    //       "Month end date in YYYY-MM-DD format"
+    //     ),
+    //   })
+    // )
+    //   .default([])
+    //   .describe(
+    //     "Array of custom monthly date ranges used for month-over-month comparisons"
+    //   ),
 
-  // Period_Array: z.array(
-  //   z.object({
-  //     PERIOD_START_DATE: z.string().describe(
-  //       "Custom period start date in YYYY-MM-DD format"
-  //     ),
+    // Period_Array: z.array(
+    //   z.object({
+    //     PERIOD_START_DATE: z.string().describe(
+    //       "Custom period start date in YYYY-MM-DD format"
+    //     ),
 
-  //     PERIOD_END_DATE: z.string().describe(
-  //       "Custom period end date in YYYY-MM-DD format"
-  //     ),
-  //   })
-  // )
-  //   .default([])
-  //   .describe(
-  //     "Array of arbitrary custom date ranges used for flexible reporting comparisons"
-  //   ),
-  Text: z
-    .string()
-    .optional()
-    .default("")
-    .describe("Additional context or instructions for the query"),
-  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
-}),
+    //     PERIOD_END_DATE: z.string().describe(
+    //       "Custom period end date in YYYY-MM-DD format"
+    //     ),
+    //   })
+    // )
+    //   .default([])
+    //   .describe(
+    //     "Array of arbitrary custom date ranges used for flexible reporting comparisons"
+    //   ),
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Additional context or instructions for the query"),
+    UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
+  }),
 
   handler: async (input: any) => {
     const tenantCheck = validateTenantProtection(input);
