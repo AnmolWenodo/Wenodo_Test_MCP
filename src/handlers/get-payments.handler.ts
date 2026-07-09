@@ -1,4 +1,4 @@
-import { getDb } from "../clients/db-client";
+﻿import { getDb } from "../clients/db-client";
 import sql from "mssql";
 import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
@@ -9,67 +9,13 @@ export async function getPaymentHandler(input: any) {
     let branchIds: string | null = null;
     if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {
-        // e.g. [1,2,3] → "1,2,3"
         branchIds = input.branchIds.join(",");
       } else {
-        // single value → "1"
         branchIds = String(input.branchIds);
       }
     }
 
-    // ─────────────────────────────────────────────
-    // GROUP BY
-    // ─────────────────────────────────────────────
-
     const groupBy = formatGroupBy(input.groupBy);
-
-    // ─────────────────────────────────────────────
-    // MCP_DATES_TYPE TVP
-    // ─────────────────────────────────────────────
-
-    const datesTable = new sql.Table();
-
-    datesTable.create = false;
-
-    datesTable.columns.add("START_DATE", sql.Date);
-    datesTable.columns.add("END_DATE", sql.Date);
-
-    // ─────────────────────────────────────────────
-    // WEEK ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Week_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.WEEK_START_DATE || null,
-        row.WEEK_END_DATE || null,
-      );
-    });
-
-    // ─────────────────────────────────────────────
-    // MONTH ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Month_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.MONTH_START_DATE || null,
-        row.MONTH_END_DATE || null,
-      );
-    });
-
-    // ─────────────────────────────────────────────
-    // PERIOD ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Period_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.PERIOD_START_DATE || null,
-        row.PERIOD_END_DATE || null,
-      );
-    });
-
-    // ─────────────────────────────────────────────
-    // EXECUTE SP
-    // ─────────────────────────────────────────────
 
     const spCall = await db
       .request()
@@ -96,7 +42,7 @@ export async function getPaymentHandler(input: any) {
       .input("PI_BRANCH_ID", branchIds ?? null)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
       .input("PI_GROUP_BY", groupBy ?? null)
-      .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable)
+      .input("PI_PERIOD_TYPE_ID", input.periodTypeId ?? null)
       .execute("PRC_MCP_GET_PAYMENT_METHOD_WISE_SALES_SUMMARY");
 
     return { result: result.recordset ?? [], isError: false, error: null };
@@ -104,3 +50,4 @@ export async function getPaymentHandler(input: any) {
     return { result: null, isError: true, error: err.message };
   }
 }
+

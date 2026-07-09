@@ -1,4 +1,4 @@
-import { getDb } from "../clients/db-client";
+﻿import { getDb } from "../clients/db-client";
 import sql from "mssql";
 import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 export async function getLeaveHandler(input: any) {
@@ -8,53 +8,15 @@ export async function getLeaveHandler(input: any) {
      let branchIds: string | null = null;
      if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {
-        // e.g. [1,2,3] → "1,2,3"
+        // e.g. [1,2,3] â†’ "1,2,3"
         branchIds = input.branchIds.join(",");
       } else {
-        // single value → "1"
+        // single value â†’ "1"
         branchIds = String(input.branchIds);
       }
     }
 
       const groupBy = formatGroupBy(input.groupBy);
-
-      const datesTable = new sql.Table();
-          datesTable.create = false;
-      
-          datesTable.columns.add("START_DATE", sql.Date);
-          datesTable.columns.add("END_DATE", sql.Date);
-          // ─────────────────────────────────────────────
-          // WEEK ARRAY TVP
-          // ─────────────────────────────────────────────
-      
-          (input.Week_Array || []).forEach((row: any) => {
-            datesTable.rows.add(
-              row.WEEK_START_DATE || null,
-              row.WEEK_END_DATE || null,
-            );
-          });
-      
-          // ─────────────────────────────────────────────
-          // MONTH ARRAY TVP
-          // ─────────────────────────────────────────────
-      
-          (input.Month_Array || []).forEach((row: any) => {
-            datesTable.rows.add(
-              row.MONTH_START_DATE || null,
-              row.MONTH_END_DATE || null,
-            );
-          });
-          // ─────────────────────────────────────────────
-          // PERIOD ARRAY TVP
-          // ─────────────────────────────────────────────
-      
-          (input.Period_Array || []).forEach((row: any) => {
-            datesTable.rows.add(
-              row.PERIOD_START_DATE || null,
-              row.PERIOD_END_DATE || null,
-            );
-          });
-
            const spCall = await db
       .request()
       .input("PI_ID", null)
@@ -80,7 +42,7 @@ export async function getLeaveHandler(input: any) {
        .input("PI_START_DATE", input.fromDate)
       .input("PI_END_DATE", input.toDate)
       .input("PI_GROUP_BY", groupBy )
-      .input("PI_MCP_DATES_TYPE", sql.TVP("MCP_DATES_TYPE"), datesTable) 
+      .input("PI_PERIOD_TYPE_ID", input.periodTypeId ?? null)
       .execute("PRC_MCP_GET_EMPLOYEE_LEAVE_DATA");
 
     
@@ -90,3 +52,4 @@ export async function getLeaveHandler(input: any) {
     return { result: null, isError: true, error: err.message };
   }
 }
+

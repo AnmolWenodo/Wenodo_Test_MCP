@@ -11,22 +11,29 @@ export const getSalesTool = {
   name: "get-sales-header-summary",
   description:
     `
-Use this tool only for POS sales header summary metrics: revenue, sales, covers, tax, tips, service charge, discounts, and voids.
+Use this tool for POS sales header summary metrics only: revenue, sales, covers, tax, tips, service charge, discounts, and voids.
 
-Required inputs:
-- fromDate: YYYY-MM-DD. Convert natural language dates before calling. If no date is provided, reuse the previous date range or ask the user.
-- toDate: YYYY-MM-DD. For relative periods, use today's date as the end date.
-- customerId: pass state.customer_id.
-- entityId: pass state.entity_id.
-- branchIds: pass state.branch_ids.
-- UserId: pass state.user_id.
+Required fields:
+- fromDate: string in YYYY-MM-DD format.
+- toDate: string in YYYY-MM-DD format.
+- entityId: number.
+- customerId: number.
+- branchIds: number, number[], or comma-separated string.
+- UserId: number. Never send null.
 
-Optional inputs:
-- Text: pass the user's original request or useful query context.
-- groupBy: no duplicates. Default is [1].
-- periodTypeId: use 1 for Week over Week, 2 for Month over Month.
+Optional fields:
+- Text: string containing the user's original request or useful query context.
+- groupBy: number[]. Default is [1]. Never include duplicate values.
+- periodTypeId: only include for comparisons. Use 1 for Week over Week, 2 for Month over Month. Never send 0.
 
-Allowed groupBy values for this tool:
+branchIds rules:
+- Valid: 237
+- Valid: [237, 363, 359]
+- Valid: "237,363,359"
+- Invalid: ["237", "363", "359"]
+If branch IDs are strings, convert them to numbers before calling.
+
+Allowed groupBy values:
 - 1 = Date
 - 3 = Session
 - 4 = Category
@@ -35,29 +42,35 @@ Allowed groupBy values for this tool:
 - 8 = Month
 - 9 = Quarter
 
-Do not use groupBy 2 Hour with this tool; use get-sales-lines-summary for hourly sales. Use get-sales-lines-summary for product/item-level questions. Use get-check-wise-sales-summary for invoice, check, waiter, cashier, or average-check questions.
+Never use groupBy 2 Hour with this tool.
+Never use groupBy 6 Product with this tool.
+Use get-sales-lines-summary for hourly, product, or item-level sales.
+Use get-check-wise-sales-summary for invoice, check, waiter, cashier, or average-check questions.
+
+Use exact field names: fromDate, toDate, entityId, branchIds, customerId, UserId, Text, groupBy, periodTypeId.
+Do not use unsupported fields such as startDate, endDate, userId, or text.
 `,
 
   inputSchema: z.object({
-    fromDate: z.string().describe("Start date YYYY-MM-DD"),
+    fromDate: z.string().describe("Required. Start date in YYYY-MM-DD format."),
 
-    toDate: z.string().describe("End date YYYY-MM-DD"),
+    toDate: z.string().describe("Required. End date in YYYY-MM-DD format."),
 
-    entityId: z.number().describe("Entity ID"),
+    entityId: z.number().describe("Required. Entity ID as a number."),
 
     branchIds: z.union([
       z.number(),
       z.array(z.number()),
       z.string()
     ]).describe(
-      "Branch ID(s) â€” single number, array of numbers, or comma-separated string e.g. '1,2,3'"
+      "Required. Branch IDs as a number, array of numbers, or comma-separated string. Valid: 237, [237,363], '237,363'. Invalid: ['237','363']; convert string arrays to number arrays."
     ),
 
-    customerId: z.number().describe("Customer ID"),
+    customerId: z.number().describe("Required. Customer ID as a number."),
 
     groupBy: groupBySchema,
 
-    periodTypeId: z.number().optional().describe("Period Type ID 1=Week, 2=Month"),
+    periodTypeId: z.number().optional().describe("Optional. Only include for comparisons: 1=Week over Week, 2=Month over Month. Never send 0."),
 
     // Week_Array: z.array(
     //   z.object({
@@ -110,8 +123,8 @@ Do not use groupBy 2 Hour with this tool; use get-sales-lines-summary for hourly
       .string()
       .optional()
       .default("")
-      .describe("Additional context or instructions for the query"),
-    UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
+      .describe("Optional. Original user request or useful query context."),
+    UserId: z.coerce.number().describe("Required user ID for permission checks. Never send null."),
   }),
 
   handler: async (input: any) => {
