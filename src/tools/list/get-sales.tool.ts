@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { getSalesHandler } from "../../handlers/get-sales.handler";
 import { log } from "node:console";
 import { validateTenantProtection } from "../../helpers/security";
@@ -11,82 +11,32 @@ export const getSalesTool = {
   name: "get-sales-header-summary",
   description:
     `
-Fetch "site-wide" daily aggregated sales summaries (total revenue, covers, tax, tips, service charge, and void metrics) from the POS system.
+Use this tool only for POS sales header summary metrics: revenue, sales, covers, tax, tips, service charge, discounts, and voids.
 
-### WHEN TO USE:
-Use this tool for site-wide sales trends, daily revenue performance, covers analysis, tips analysis, financial reporting, or period-over-period comparisons.
+Required inputs:
+- fromDate: YYYY-MM-DD. Convert natural language dates before calling. If no date is provided, reuse the previous date range or ask the user.
+- toDate: YYYY-MM-DD. For relative periods, use today's date as the end date.
+- customerId: pass state.customer_id.
+- entityId: pass state.entity_id.
+- branchIds: pass state.branch_ids.
+- UserId: pass state.user_id.
 
-### GROUP BY DIMENSIONS (Pass numeric IDs only):
-- 1 = Date / Day
-- 3 = Session (Lunch, Dinner, etc.)
-- 4 = Category (Food, Beverage, etc.)
-- 5 = Revenue Center (Dining Room, Bar, Takeaway)
+Optional inputs:
+- Text: pass the user's original request or useful query context.
+- groupBy: no duplicates. Default is [1].
+- periodTypeId: use 1 for Week over Week, 2 for Month over Month.
+
+Allowed groupBy values for this tool:
+- 1 = Date
+- 3 = Session
+- 4 = Category
+- 5 = Revenue Center
 - 7 = Week
 - 8 = Month
 - 9 = Quarter
 
-⚠️ WARNING: Do NOT use option 2 (Hour) with this tool. It will trigger a database error ('Invalid column name HOUR_PART'). For hourly sales metrics, use get-sales-lines-summary instead.
-
----
-
-### Capabilities:
-This tool supports both:
-
-**Aggregated Data (Using GroupBy)**
-   - Returns grouped sales summaries
-   - Use when user asks for:
-     - totals
-     - trends
-     - comparisons
-     - charts
-
-**Period-Over-Period Comparisons (Using periodTypeId)**
-   - The database now automatically handles comparison logic (WoW, MoM, YoY).
-   - Do NOT attempt to pass arrays of custom date ranges.
-   - Simply provide the primary \`fromDate\` and \`toDate\`, and set \`periodTypeId\`:
-     - 1 = Week (e.g., Week over Week)
-     - 2 = Month (e.g., Month over Month)
-
----
-
-### What this tool returns:
-#### If no GroupBy:
-- Raw transaction data (invoice / Header-level)
-- Multiple rows per invoice possible
-
-#### If GroupBy is used:
-- Aggregated sales data
-- Each row represents grouped results
-
-Common metrics:
-- NET → Net sales
-- TAX → Tax amount
-- GROSS → Total revenue
-- DISCOUNT → Discount amount
-- TIPS → Tips collected
-- SERVICE_CHARGE → Service charge amount  
-- COVERS → Number of customers
-
----
-
-### Example Use Cases:
-- Sales summaries of year / month / date
-- Total sales for a date range
-- Sales trend over time (group by date)
-- Sales by session (Breakfast/Lunch/Dinner)
-- Category performance analysis
-- Revenue by revenue center
-- Drill-down from summary → transactions
-- Week over Week or Month over Month comparisons (using periodTypeId)
-
----
-
-### Notes:
-- This is the primary tool for revenue analysis
-- Use raw data for detailed invoice-header-level queries
-- Always compute totals if user asks for totals
+Do not use groupBy 2 Hour with this tool; use get-sales-lines-summary for hourly sales. Use get-sales-lines-summary for product/item-level questions. Use get-check-wise-sales-summary for invoice, check, waiter, cashier, or average-check questions.
 `,
-
 
   inputSchema: z.object({
     fromDate: z.string().describe("Start date YYYY-MM-DD"),
@@ -100,7 +50,7 @@ Common metrics:
       z.array(z.number()),
       z.string()
     ]).describe(
-      "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
+      "Branch ID(s) â€” single number, array of numbers, or comma-separated string e.g. '1,2,3'"
     ),
 
     customerId: z.number().describe("Customer ID"),
@@ -168,7 +118,7 @@ Common metrics:
     const tenantCheck = validateTenantProtection(input);
     if (!tenantCheck.isValid) {
       return {
-        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+        content: [{ type: "text", text: `âŒ Security Error: ${tenantCheck.error}` }],
       };
     }
 
@@ -176,7 +126,7 @@ Common metrics:
 
     if (res.isError) {
       return {
-        content: [{ type: "text", text: `❌ ${res.error}` }],
+        content: [{ type: "text", text: `âŒ ${res.error}` }],
       };
     }
 

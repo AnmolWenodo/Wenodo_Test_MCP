@@ -12,16 +12,16 @@ import { getShiftsTool } from "./get-shifts.tool";
 import { getLeavesTool } from "./get-leaves-tool";
 import { getShiftsLineTool } from "./get-shifts-line.tool";
 export const listTools = [
-  helloTool,
+  // helloTool,
   getSalesTool,
   // getSalesInvoiceTool,
-  getSalesInvoiceLinesTool,
-  getCheckWiseSalesSummaryTool,
+  // getSalesInvoiceLinesTool,
+  // getCheckWiseSalesSummaryTool,
   // getCoversTool,
-  getPaymentsTool,
+  // getPaymentsTool,
   // getDiscountsTool,
-  getEmployeesTool,
-  getShiftsTool,
-  getLeavesTool,
-  getShiftsLineTool,
+  // getEmployeesTool,
+  // getShiftsTool,
+  // getLeavesTool,
+  // getShiftsLineTool,
 ];
