@@ -188,19 +188,17 @@ inputSchema: z.object({
       startDate: z.string(),
       endDate: z.string(),
       groupBy: z.array(z.number()),
-
       Week_Array: z.array(
         z.object({
           WEEK_START_DATE: z.string(),
           WEEK_END_DATE: z.string(),
         })
       ),
-
       Month_Array: z.array(z.any()),
-
       Period_Array: z.array(z.any()),
     })
-    .describe("Filter variables object"),
+    .optional()
+    .describe("Optional explicit variables payload; omitted values are derived from tool inputs."),
 }),
   handler: async (input: any) => {
     const res = await getCheckWiseSalesSummaryHandler(input);

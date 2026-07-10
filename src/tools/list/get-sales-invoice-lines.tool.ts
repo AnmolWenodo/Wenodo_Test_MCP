@@ -98,6 +98,11 @@ inputSchema: z.object({
 
   customerId: z.number().describe("Customer ID"),
 
+  periodTypeId: z
+    .number()
+    .optional()
+    .describe("Optional period type: 1 = week, 2 = month"),
+
   groupBy: groupBySchema,
 
   Week_Array: z.array(

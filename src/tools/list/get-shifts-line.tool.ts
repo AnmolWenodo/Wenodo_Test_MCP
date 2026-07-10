@@ -227,6 +227,11 @@ User: "Employee shift history"
 
     pageSize: z.number().default(50).describe("Number of records per page"),
 
+    periodTypeId: z
+      .number()
+      .optional()
+      .describe("Optional period type: 1 = week, 2 = month"),
+
     Week_Array: z
       .array(
         z.object({
