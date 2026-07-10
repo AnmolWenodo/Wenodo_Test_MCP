@@ -19,7 +19,7 @@ export const listTools = [
   getCheckWiseSalesSummaryTool,
   // getCoversTool,
   getPaymentsTool,
-  getDiscountsTool,
+  // getDiscountsTool,
   getEmployeesTool,
   getShiftsTool,
   getLeavesTool,
