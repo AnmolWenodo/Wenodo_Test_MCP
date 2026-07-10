@@ -9,7 +9,20 @@ export const getSalesInvoiceLinesTool = {
   description: `
 Fetch detailed check / invoice / bill-level sales data from the EPOS system.
 
-This tool returns detailed check-wise transactional data, where each row represents a complete POS check / invoice / customer bill.
+This tool returns product and category level sales data, where each row represents sales metrics grouped by your chosen dimension (product, category, date, session, etc.).
+
+Required fields:
+- fromDate: string in YYYY-MM-DD format.
+- toDate: string in YYYY-MM-DD format.
+- entityId: number.
+- customerId: number.
+- branchIds: number, number[], or comma-separated string.
+- UserId: number. Never send null.
+
+Optional fields:
+- Text: string containing the user's original request or useful query context.
+- groupBy: number[]. Default is [1]. Never include duplicate values.
+- periodTypeId: only include for comparisons. Use 1 for Week over Week, 2 for Month over Month. Never send 0.
 
 ### GROUP BY DIMENSIONS (Pass numeric IDs only):
 - 1 = Date / Day
@@ -26,139 +39,78 @@ This tool returns detailed check-wise transactional data, where each row represe
 
 ### ✅ When to use this tool
 
-Use this tool only if the user asks for:
+Use this tool when the user asks for:
 
-📄 Check / Invoice Detail Queries
-specific check detail
-invoice breakdown
-bill detail
-receipt detail
-transaction detail
-order detail
-customer bill detail
-POS check information
-payment breakdown for a bill
-tax / discount detail for an invoice
-guest / cashier detail for a transaction
-product wise details
+📦 Product / Item Level Queries
+- product wise sales
+- item wise sales
+- dish wise sales
+- top selling products
+- best selling items
+- product quantities sold
+- menu item performance
+- product revenue
 
-📊 Check-Level Analysis Queries
-top bills
-highest value invoices
-check-wise revenue
-average bill analysis
-check-wise sales comparison
-invoice-wise trends
-branch-wise bill analysis
-cashier-wise invoice performance
-hourly invoice trends
-daily transaction summaries
+🗂️ Category Level Queries
+- category wise sales
+- food vs beverage breakdown
+- revenue by category
+- category performance
 
----
-Use this tool ONLY when:
-1. The user asks for detailed check/bill/invoice metrics.
-2. The user specifically requests "invoice details", "bill-level summaries", or transactional line-items.
-3. You need to drill down into a specific transaction to check what was sold or how it was paid.
+📊 Hourly / Session / Date Breakdown
+- hourly sales
+- sales by hour
+- session wise sales (lunch, dinner, breakfast)
+- daily breakdown by product
+- weekly / monthly product trends
 
 ---
 
 ### ❌ Do NOT use this tool when
-- You only need aggregate summaries or store-wide trends (totals, category performance, shifts, tips). Use **get-sales-header-summary** instead.
-
----
-
-### 📊 Columns / Metrics returned
-- **Check-level identifiers**: \`CHECK_HEADER_ID\` (Invoice ID), \`CHECK_NO\` (Bill number), \`CHECK_DATE\`, \`CHECK_OPEN_TIME\`, \`CHECK_CLOSE_TIME\`
-- **Metadata**: \`BRANCH_NAME\`, \`REVENUE_CENTER_NAME\`, \`TABLE_NAME\`, \`WAITER_NAME\`
-- **Totals**: \`GROSS\`, \`DISCOUNT\`, \`NET\`, \`TAX\`, \`SERVICE_CHARGE\`, \`COVERS\`
-- **Status flags**: \`VOID_CHECK\` (1 = cancelled/voided, 0 = active)
+- You need header-level totals, covers, or tips summary → Use **get-sales-header-summary**
+- You need check/invoice/bill detail → Use **get-check-wise-sales-summary**
 
 ---
 
 ### 💡 Example queries:
-- "Show me all invoices from the Grand Divan on June 1st"
-- "List the gross totals and bill numbers for shift 1234"
-- "What time did check #999 close?"
+- "Show top 10 selling products for June"
+- "What is the category wise sales for last week?"
+- "Show me hourly sales broken down by product"
+- "Compare product sales week over week"
 `,
 
-inputSchema: z.object({
-  fromDate: z.string().describe("Start date YYYY-MM-DD"),
+  inputSchema: z.object({
+    fromDate: z.string().describe("Required. Start date in YYYY-MM-DD format."),
 
-  toDate: z.string().describe("End date YYYY-MM-DD"),
+    toDate: z.string().describe("Required. End date in YYYY-MM-DD format."),
 
-  entityId: z.number().describe("Entity ID"),
+    entityId: z.number().describe("Required. Entity ID as a number."),
 
-  branchIds: z.union([
-    z.number(),
-    z.array(z.number()),
-    z.string()
-  ]).describe(
-    "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
-  ),
-
-  customerId: z.number().describe("Customer ID"),
-
-  periodTypeId: z
-    .number()
-    .optional()
-    .describe("Optional period type: 1 = week, 2 = month"),
-
-  groupBy: groupBySchema,
-
-  Week_Array: z.array(
-    z.object({
-      WEEK_START_DATE: z.string().describe(
-        "Week start date in YYYY-MM-DD format"
-      ),
-
-      WEEK_END_DATE: z.string().describe(
-        "Week end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom weekly date ranges used for week-over-week comparisons"
+    branchIds: z.union([
+      z.number(),
+      z.array(z.number()),
+      z.string()
+    ]).describe(
+      "Required. Branch IDs as a number, array of numbers, or comma-separated string. Valid: 237, [237,363], '237,363'. Invalid: ['237','363']; convert string arrays to number arrays."
     ),
 
-  Month_Array: z.array(
-    z.object({
-      MONTH_START_DATE: z.string().describe(
-        "Month start date in YYYY-MM-DD format"
-      ),
+    customerId: z.number().describe("Required. Customer ID as a number."),
 
-      MONTH_END_DATE: z.string().describe(
-        "Month end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom monthly date ranges used for month-over-month comparisons"
-    ),
+    groupBy: groupBySchema,
 
-  Period_Array: z.array(
-    z.object({
-      PERIOD_START_DATE: z.string().describe(
-        "Custom period start date in YYYY-MM-DD format"
-      ),
+    periodTypeId: z.number().optional().describe("Optional. Only include for comparisons: 1 = Week over Week, 2 = Month over Month. Never send 0."),
 
-      PERIOD_END_DATE: z.string().describe(
-        "Custom period end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of arbitrary custom date ranges used for flexible reporting comparisons"
-    ),
-  Text: z
-    .string()
-    .optional()
-    .default("")
-    .describe("Additional context or instructions for the query"),
-  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
-}),
+    page: z.number().optional().default(1).describe("Optional. Page number (default: 1)."),
+
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Optional. Original user request or useful query context."),
+
+    UserId: z.coerce.number().describe("Required user ID for permission checks. Never send null."),
+  }),
+
   handler: async (input: any) => {
     const tenantCheck = validateTenantProtection(input);
     if (!tenantCheck.isValid) {
