@@ -31,43 +31,6 @@ export async function getSalesHandler(input: {
 
     const groupBy = formatGroupBy(input.groupBy);
 
-    // const datesTable = new sql.Table();
-    // datesTable.create = false;
-
-    // datesTable.columns.add("START_DATE", sql.Date);
-    // datesTable.columns.add("END_DATE", sql.Date);
-    // // ─────────────────────────────────────────────
-    // // WEEK ARRAY TVP
-    // // ─────────────────────────────────────────────
-
-    // (input.Week_Array || []).forEach((row: any) => {
-    //   datesTable.rows.add(
-    //     row.WEEK_START_DATE || null,
-    //     row.WEEK_END_DATE || null,
-    //   );
-    // });
-
-    // // ─────────────────────────────────────────────
-    // // MONTH ARRAY TVP
-    // // ─────────────────────────────────────────────
-
-    // (input.Month_Array || []).forEach((row: any) => {
-    //   datesTable.rows.add(
-    //     row.MONTH_START_DATE || null,
-    //     row.MONTH_END_DATE || null,
-    //   );
-    // });
-    // // ─────────────────────────────────────────────
-    // // PERIOD ARRAY TVP
-    // // ─────────────────────────────────────────────
-
-    // (input.Period_Array || []).forEach((row: any) => {
-    //   datesTable.rows.add(
-    //     row.PERIOD_START_DATE || null,
-    //     row.PERIOD_END_DATE || null,
-    //   );
-    // });
-
     // ─────────────────────────────────────────────
     // DEBUG LOG
     // ─────────────────────────────────────────────

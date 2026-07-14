@@ -1,11 +1,25 @@
 import { z } from "zod";
-import { getSalesInvoiceLinesHandler } from "../../handlers/get-sales-invoice-lines.handler";
 import { getCheckWiseSalesSummaryHandler } from "../../handlers/get-checkwise-summary.handler";
+import { validateTenantProtection } from "../../helpers/security";
 import { optimizeTable } from "../../helpers/optimize";
 
 export const getCheckWiseSalesSummaryTool = {
   name: "get-check-wise-sales-summary",
-  description: `Fetch detailed information for a specific POS check / invoice / bill.
+  description: `
+Fetch detailed information for a specific POS check / invoice / bill.
+
+Required fields:
+- fromDate: string in YYYY-MM-DD format.
+- toDate: string in YYYY-MM-DD format.
+- entityId: number.
+- customerId: number.
+- branchIds: number, number[], or comma-separated string.
+- UserId: number. Never send null.
+
+Optional fields:
+- Text: string containing the user's original request or useful query context.
+- groupBy: number[]. Default is [1]. Never include duplicate values.
+- periodTypeId: only include for comparisons. Use 1 for Week over Week, 2 for Month over Month. Never send 0.
 
 ### GROUP BY DIMENSIONS (Pass numeric IDs only):
 - 1 = Day
@@ -18,102 +32,70 @@ export const getCheckWiseSalesSummaryTool = {
 
 ---
 
+### ✅ When to use this tool
+
 Use this tool whenever the user asks about:
+- check detail
+- invoice detail
+- bill detail
+- receipt detail
+- transaction detail
+- order detail
+- POS check information
+- check breakdown
+- invoice breakdown
+- bill breakdown
+- item level detail for a check
+- payment detail for a check
+- tax detail for a bill
+- discount detail for an invoice
+- specific check information
 
-check detail
-invoice detail
-bill detail
-receipt detail
-transaction detail
-order detail
-POS check information
-check breakdown
-invoice breakdown
-bill breakdown
-item level detail for a check
-payment detail for a check
-tax detail for a bill
-discount detail for an invoice
-specific check information
+### ❌ Do NOT use this tool when
+- You only need aggregate summaries or store-wide trends (totals, category performance, shifts, tips). Use **get-sales-header-summary** instead.
+- You need product-level item sales analysis. Use **get-sales-lines-summary** instead.
 
-Examples:
+---
 
-"Show detail for check 1205"
-"Get invoice INV-1001 detail"
-"Show bill breakdown for yesterday"
-"What items were in check 550?"
-"Show payment split for invoice 2001"
-"Tax and discount detail for check 900"
+### 💡 Example queries:
+- "Show detail for check 1205"
+- "Get invoice INV-1001 detail"
+- "Show bill breakdown for yesterday"
+- "What items were in check 550?"
+- "Show payment split for invoice 2001"
+- "Tax and discount detail for check 900"
+`,
 
-### 📊 Data Structure
+  inputSchema: z.object({
+    fromDate: z.string().describe("Required. Start date in YYYY-MM-DD format."),
 
-Each row represents aggregated check-level sales data grouped dynamically based on the groupBy parameter.
+    toDate: z.string().describe("Required. End date in YYYY-MM-DD format."),
 
-Core Metrics
-  NET → Total net sales amount
-  GROSS → Total gross sales amount
-  TAX → Total tax amount
-  DISCOUNT → Total discount amount
-  VOID → Total void amount
-  QUANITY → Total quantity sold
+    entityId: z.number().describe("Required. Entity ID as a number."),
 
-Check Information
-  CHECK_NO → POS check / bill number
+    branchIds: z.union([
+      z.number(),
+      z.array(z.number()),
+      z.string()
+    ]).describe(
+      "Required. Branch IDs as a number, array of numbers, or comma-separated string. Valid: 237, [237,363], '237,363'. Invalid: ['237','363']; convert string arrays to number arrays."
+    ),
 
-Date Range
-  START_DATE → Query start date
-  END_DATE → Query end date
+    customerId: z.number().describe("Required. Customer ID as a number."),
 
-Entity & Branch
-  ENTITY_ID → Entity identifier
-  BRANCH_ID → Branch identifier
-  ENTITY_NAME → Entity name
-  BRANCH_NAME → Branch name
-
-The tool returns:
-
-Check / invoice information
-Item level details
-Quantity and prices
-Discounts and taxes
-Payment details
-Guest count
-Employee / cashier
-Branch and revenue center
-Open / close timestamps
-Net / gross amounts`,
-
-inputSchema: z.object({
-  fromDate: z.string().describe("Start date YYYY-MM-DD"),
-
-  toDate: z.string().describe("End date YYYY-MM-DD"),
-
-  entityId: z.number().describe("Entity ID"),
-
-  branchIds: z.union([
-    z.number(),
-    z.array(z.number()),
-    z.string()
-  ]).describe(
-    "Branch ID(s) — single number, array of numbers, or comma-separated string e.g. '1,2,3'"
-  ),
-
-  customerId: z.number().describe("Customer ID"),
-
-  groupBy: z.array(
-    z.union([
-      z.literal(1).transform(() => 1), // day
-      z.literal(2).transform(() => 2), // hour
-      z.literal(3).transform(() => 3), // session
-      z.literal(4).transform(() => 4), // category
-      z.literal(5).transform(() => 5), // revenue center
-      z.literal(6).transform(() => 6), // product
-      // Catch-all: unknown strings (e.g. "BRANCH_NAME") → null → filtered out
-      z.string().transform((val) => { const n = Number(val); return isNaN(n) ? null : n; }),
-      z.number().transform((val) => val),
-    ])
-  )
-  .transform((arr) => arr.filter((v): v is number => v !== null))
+    groupBy: z.array(
+      z.union([
+        z.literal(1).transform(() => 1), // day
+        z.literal(2).transform(() => 2), // hour
+        z.literal(3).transform(() => 3), // session
+        z.literal(4).transform(() => 4), // category
+        z.literal(5).transform(() => 5), // revenue center
+        z.literal(6).transform(() => 6), // product
+        z.string().transform((val) => { const n = Number(val); return isNaN(n) ? null : n; }),
+        z.number().transform((val) => val),
+      ])
+    )
+    .transform((arr) => arr.filter((v): v is number => v !== null))
     .default([1])
     .describe(
       "Fields to group by. Pass numeric IDs only:\n" +
@@ -127,80 +109,25 @@ inputSchema: z.object({
       "Example: [1], [1,3], [4,6]"
     ),
 
-  Week_Array: z.array(
-    z.object({
-      WEEK_START_DATE: z.string().describe(
-        "Week start date in YYYY-MM-DD format"
-      ),
+    periodTypeId: z.number().optional().describe("Optional. Only include for comparisons: 1 = Week over Week, 2 = Month over Month. Never send 0."),
 
-      WEEK_END_DATE: z.string().describe(
-        "Week end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom weekly date ranges used for week-over-week comparisons"
-    ),
+    Text: z
+      .string()
+      .optional()
+      .default("")
+      .describe("Optional. Original user request or useful query context."),
 
-  Month_Array: z.array(
-    z.object({
-      MONTH_START_DATE: z.string().describe(
-        "Month start date in YYYY-MM-DD format"
-      ),
+    UserId: z.coerce.number().describe("Required user ID for permission checks. Never send null."),
+  }),
 
-      MONTH_END_DATE: z.string().describe(
-        "Month end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of custom monthly date ranges used for month-over-month comparisons"
-    ),
-
-  Period_Array: z.array(
-    z.object({
-      PERIOD_START_DATE: z.string().describe(
-        "Custom period start date in YYYY-MM-DD format"
-      ),
-
-      PERIOD_END_DATE: z.string().describe(
-        "Custom period end date in YYYY-MM-DD format"
-      ),
-    })
-  )
-    .default([])
-    .describe(
-      "Array of arbitrary custom date ranges used for flexible reporting comparisons"
-    ),
-  Text: z
-    .string()
-    .optional()
-    .default("")
-    .describe("Additional context or instructions for the query"),
-  UserId: z.coerce.number().describe("User ID for permission checks and personalization"),
-  Variables: z
-    .object({
-      customerId: z.number(),
-      entityId: z.number(),
-      branchIds: z.array(z.number()),
-      startDate: z.string(),
-      endDate: z.string(),
-      groupBy: z.array(z.number()),
-      Week_Array: z.array(
-        z.object({
-          WEEK_START_DATE: z.string(),
-          WEEK_END_DATE: z.string(),
-        })
-      ),
-      Month_Array: z.array(z.any()),
-      Period_Array: z.array(z.any()),
-    })
-    .optional()
-    .describe("Optional explicit variables payload; omitted values are derived from tool inputs."),
-}),
   handler: async (input: any) => {
+    const tenantCheck = validateTenantProtection(input);
+    if (!tenantCheck.isValid) {
+      return {
+        content: [{ type: "text", text: `❌ Security Error: ${tenantCheck.error}` }],
+      };
+    }
+
     const res = await getCheckWiseSalesSummaryHandler(input);
 
     if (res.isError) {

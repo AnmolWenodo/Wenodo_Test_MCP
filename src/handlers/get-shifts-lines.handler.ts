@@ -2,25 +2,7 @@ import sql from "mssql";
 import { getDb } from "../clients/db-client";
 import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
-export async function getShiftsLine(input: {
-  Month_Array: any[];
-  Period_Array: any[];
-  Week_Array: any[];
-
-  fromDate: string;
-  toDate: string;
-
-  entityId?: number;
-  branchIds?: number | number[];
-  customerId?: number;
-
-  groupBy?: string[] | string;
-  pageNo?: number;
-  pageSize?: number;
-  Text?: string;
-  UserId?: number;
-  Variables?: Record<string, any>;
-}) {
+export async function getShiftsLine(input: any) {
   try {
     const db = getDb();
 
@@ -47,53 +29,8 @@ export async function getShiftsLine(input: {
     const groupBy = formatGroupBy(input.groupBy);
 
     // ─────────────────────────────────────────────
-    // MCP_DATES_TYPE TVP
-    // ─────────────────────────────────────────────
-
-    const datesTable = new sql.Table();
-
-    datesTable.create = false;
-
-    datesTable.columns.add("START_DATE", sql.Date);
-    datesTable.columns.add("END_DATE", sql.Date);
-
-    // ─────────────────────────────────────────────
-    // WEEK ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Week_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.WEEK_START_DATE || null,
-        row.WEEK_END_DATE || null
-      );
-    });
-
-    // ─────────────────────────────────────────────
-    // MONTH ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Month_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.MONTH_START_DATE || null,
-        row.MONTH_END_DATE || null
-      );
-    });
-
-    // ─────────────────────────────────────────────
-    // PERIOD ARRAY
-    // ─────────────────────────────────────────────
-
-    (input.Period_Array || []).forEach((row: any) => {
-      datesTable.rows.add(
-        row.PERIOD_START_DATE || null,
-        row.PERIOD_END_DATE || null
-      );
-    });
-
-    // ─────────────────────────────────────────────
     // EXECUTE SP
     // ─────────────────────────────────────────────
-
 
      const spCall = await db
       .request()
@@ -119,13 +56,8 @@ export async function getShiftsLine(input: {
       .input("PI_ENTITY_ID", input.entityId ?? 0)
       .input("PI_BRANCH_ID", branchIds ?? null)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
-      .input("PI_PAGE_NO", input.pageNo ?? 1)
-      .input("PI_PAGE_SIZE", input.pageSize ?? 50)
-      .input(
-        "PI_MCP_DATES_TYPE",
-        sql.TVP("MCP_DATES_TYPE"),
-        datesTable
-      )
+      .input("PI_GROUP_BY", groupBy ?? null)
+      .input("PI_PERIOD_TYPE_ID", input.periodTypeId ?? null)
       .execute("PRC_MCP_GET_EMPLOYEE_SHIFTS_DATA_IN_DETAIL");
 
     // ─────────────────────────────────────────────

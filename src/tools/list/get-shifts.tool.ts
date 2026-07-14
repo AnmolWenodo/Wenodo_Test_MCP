@@ -10,14 +10,34 @@ Fetch employee staffing, labor cost, and workforce summary data from the workfor
 
 This tool returns workforce cost and staffing summary records, where each row represents aggregated employee shift, attendance, and labor cost data.
 
-### GROUP BY DIMENSIONS (Pass numeric IDs only):
-- 8 = Position (Labor metrics grouped by job position/title)
-- 9 = Department (Labor metrics grouped by department)
-- 10 = Section (Labor metrics grouped by specific work station)
-- 11 = Shift (Labor metrics grouped by shift template name)
-- 12 = Pay Type (Labor metrics grouped by compensation type, e.g., Hourly Rate, Salary)
-- 13 = Business Date (Workforce summary per day)
-- 14 = Employee (Workforce summary per staff member)
+Required fields:
+- fromDate: string in YYYY-MM-DD format.
+- toDate: string in YYYY-MM-DD format.
+- entityId: number.
+- customerId: number.
+- branchIds: number, number[], or comma-separated string.
+- UserId: number. Never send null.
+
+Optional fields:
+- Text: string containing the user's original request or useful query context.
+- groupBy: number[]. Default is [13]. Never include duplicate values.
+- periodTypeId: only include for comparisons. Use 1 for Week over Week, 2 for Month over Month. Never send 0.
+
+branchIds rules:
+- Valid: 237
+- Valid: [237, 363, 359]
+- Valid: "237,363,359"
+- Invalid: ["237", "363", "359"]
+If branch IDs are strings, convert them to numbers before calling.
+
+Allowed groupBy values:
+- 8 = Position
+- 9 = Department
+- 10 = Section
+- 11 = Shift
+- 12 = Pay Type
+- 13 = Business Date
+- 14 = Employee
 
 ---
 
@@ -26,163 +46,69 @@ This tool returns workforce cost and staffing summary records, where each row re
 Use this tool only if the user asks for:
 
 💰 Staff Cost & Labor Analysis Queries
-staff cost
-labor cost
-employee cost
-staffing expense
-scheduled labor cost
-approved labor cost
-labor summary
-staff payroll cost
-shift cost analysis
-NIC / pension cost analysis
-holiday accrual cost
-workforce expense analysis
-
+- staff cost
+- labor cost
+- employee cost
+- staffing expense
+- scheduled labor cost
+- approved labor cost
+- labor summary
+- staff payroll cost
+- shift cost analysis
+- NIC / pension cost analysis
+- holiday accrual cost
+- workforce expense analysis
 
 📊 Workforce Summary Queries
-staffing summary
-employee shift summary
-department staffing
-branch staffing analysis
-position-wise staffing
-employee working hours summary
-approved hours analysis
-scheduled vs approved hours
-attendance summary
-daily workforce summary
+- staffing summary
+- employee shift summary
+- department staffing
+- branch staffing analysis
+- position-wise staffing
+- employee working hours summary
+- approved hours analysis
+- scheduled vs approved hours
+- attendance summary
+- daily workforce summary
 
 🕒 Workforce Operations Queries
-who worked today
-staff utilization
-branch workforce analysis
-department labor analysis
-employee scheduling summary
-pay type analysis
-shift summary
-approved shift reporting
-
----
-
-### 📊 Data Structure
-
-Each row represents aggregated workforce staffing and labor cost data.
-
-Core Labor Metrics
-  SCHEDULED_COST → Scheduled labor cost
-  APPROVED_COST → Approved labor cost
-  CLOCKED_IN_COST → Actual labor cost based on attendance
-
-Pension & NIC Metrics
-  SCHEDULED_PENSION → Scheduled pension contribution
-  APPROVED_PENSION → Approved pension contribution
-  CLOCKED_IN_PENSION → Actual pension contribution
-
-  SCHEDULED_NIC → Scheduled NIC contribution
-  APPROVED_NIC → Approved NIC contribution
-  CLOCKED_IN_NIC → Actual NIC contribution
-
-Holiday Accrual Metrics
-  SCHEDULED_HOLIDAY_ACCRUAL_COST → Scheduled holiday accrual cost
-  APPROVED_HOLIDAY_ACCRUAL_COST → Approved holiday accrual cost
-  CLOCKED_IN_HOLIDAY_ACCRUAL_COST → Actual holiday accrual cost
-
-Employee Information
-  EMPLY_PRSNL_ID → Employee identifier
-  EMPLOYEE_NUMBER → Employee code
-  EMPLOYEE_NAME → Employee full name
-
-Business & Branch Information
-  BUSINESS_DATE → Business date
-  ENTITY_ID → Entity identifier
-  BRANCH_ID → Branch identifier
-  ENTITY_NAME → Entity name
-  BRANCH_NAME → Branch name
-
-Position & Department
-  POSITION_NAME → Employee position
-  DEPARTMENT_NAME → Department name
-  SECTION_NAME → Section name
-
-Shift Information
-  SHIFT_NAME → Shift name
-  SCHEDULED_DURATION → Scheduled shift duration
-  APPROVED_SHIFT_DURATION → Approved shift duration
-
-Attendance Information
-  CLOCK_IN → Actual clock-in timestamp
-  CLOCK_OUT → Actual clock-out timestamp
-  STATUS_NAME → Shift / attendance status
-
-Payroll Information
-  PAY_TYPE → Employee pay type
-    Examples:
-    - Shift Rate
-    - Hourly Rate
-    - Salary
-
-⚠️ Important Behavior
-
-Data is generally aggregated depending on the grouping applied.
-
-Each row may represent:
-- employee labor summaries
-- branch staffing summaries
-- department labor summaries
-- daily workforce summaries
-- position-wise staffing summaries
-
-Some attendance fields may contain:
-- NULL
-- empty values
-
-Pagination is supported using:
-- pageNo
-- pageSize
+- who worked today
+- staff utilization
+- branch workforce analysis
+- department labor analysis
+- employee scheduling summary
+- pay type analysis
+- shift summary
+- approved shift reporting
 
 ---
 
 ### 💡 Examples
-
-User: "Staff cost for last month"
-→ Returns workforce labor cost summaries
-
-User: "Department-wise labor analysis"
-→ Group by department
-
-User: "Branch staffing cost"
-→ Returns branch labor summaries
-
-User: "Approved labor hours by employee"
-→ Returns employee workforce summaries
-
-User: "Daily staff cost trends"
-→ Returns date-wise labor summaries
-
-User: "Pay type analysis"
-→ Returns labor grouped by PAY_TYPE
-
----
-
-### 📌 Notes
-
-- Always convert natural language dates → YYYY-MM-DD
-- Use this tool for workforce cost analysis and staffing summaries
-- Prefer this tool when the user asks about labor expenses, staffing cost, workforce summaries, or employee labor analytics
-- Supports paginated retrieval for large datasets
+- "Staff cost for last month"
+- "Department-wise labor analysis"
+- "Branch staffing cost"
+- "Approved labor hours by employee"
+- "Daily staff cost trends"
+- "Pay type analysis"
 `,
 
   inputSchema: z.object({
-    fromDate: z.string().describe("Start date YYYY-MM-DD"),
+    fromDate: z.string().describe("Required. Start date in YYYY-MM-DD format."),
 
-    toDate: z.string().describe("End date YYYY-MM-DD"),
-    entityId: z.number(),
-    branchIds: z
-      .union([z.number(), z.string(), z.array(z.number())])
-      .optional()
-      .default(0)
-      .describe("Branch ID or multiple IDs"),
-    customerId: z.number(),
+    toDate: z.string().describe("Required. End date in YYYY-MM-DD format."),
+
+    entityId: z.number().describe("Required. Entity ID as a number."),
+
+    branchIds: z.union([
+      z.number(),
+      z.array(z.number()),
+      z.string()
+    ]).describe(
+      "Required. Branch IDs as a number, array of numbers, or comma-separated string. Valid: 237, [237,363], '237,363'. Invalid: ['237','363']; convert string arrays to number arrays."
+    ),
+
+    customerId: z.number().describe("Required. Customer ID as a number."),
+
     groupBy: z
       .array(
         z.union([
@@ -193,7 +119,6 @@ User: "Pay type analysis"
           z.literal(12).transform(() => 12), // pay type
           z.literal(13).transform(() => 13), // business date
           z.literal(14).transform(() => 14), // employee
-          // Catch-all: unknown strings (e.g. "BRANCH_NAME") → null → filtered out
           z.string().transform((val) => { const n = Number(val); return isNaN(n) ? null : n; }),
           z.number().transform((val) => val),
         ]),
@@ -210,65 +135,18 @@ User: "Pay type analysis"
           "13 = business date\n" +
           "14 = employee\n" +
           "NOTE: No groupBy for Branch/Site — use branchIds for branch filtering.\n" +
-          "Example: [13], [9,13], [8,14]",
+          "Example: [13], [9,13], [8,14]"
       ),
 
-    Week_Array: z
-      .array(
-        z.object({
-          WEEK_START_DATE: z
-            .string()
-            .describe("Week start date in YYYY-MM-DD format"),
+    periodTypeId: z.number().optional().describe("Optional. Only include for comparisons: 1=Week over Week, 2=Month over Month. Never send 0."),
 
-          WEEK_END_DATE: z
-            .string()
-            .describe("Week end date in YYYY-MM-DD format"),
-        }),
-      )
-      .default([])
-      .describe(
-        "Array of custom weekly date ranges used for week-over-week comparisons",
-      ),
-
-    Month_Array: z
-      .array(
-        z.object({
-          MONTH_START_DATE: z
-            .string()
-            .describe("Month start date in YYYY-MM-DD format"),
-
-          MONTH_END_DATE: z
-            .string()
-            .describe("Month end date in YYYY-MM-DD format"),
-        }),
-      )
-      .default([])
-      .describe(
-        "Array of custom monthly date ranges used for month-over-month comparisons",
-      ),
-
-    Period_Array: z
-      .array(
-        z.object({
-          PERIOD_START_DATE: z
-            .string()
-            .describe("Custom period start date in YYYY-MM-DD format"),
-
-          PERIOD_END_DATE: z
-            .string()
-            .describe("Custom period end date in YYYY-MM-DD format"),
-        }),
-      )
-      .default([])
-      .describe(
-        "Array of arbitrary custom date ranges used for flexible reporting comparisons",
-      ),
     Text: z
       .string()
       .optional()
       .default("")
-      .describe("Optional text parameter for additional context"),
-    UserId: z.coerce.number().optional().describe("Optional user ID for context"),
+      .describe("Optional. Original user request or useful query context."),
+
+    UserId: z.coerce.number().describe("Required user ID for permission checks. Never send null."),
   }),
 
   handler: async (input: any) => {

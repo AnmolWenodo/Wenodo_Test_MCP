@@ -1,6 +1,6 @@
 import { getDb } from "../clients/db-client";
 import sql from "mssql";
-import { formatVariables } from "../helpers/handler-helper";
+import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
 export async function getEmployeesHandler(input: any) {
   try {
@@ -16,6 +16,8 @@ export async function getEmployeesHandler(input: any) {
         branchIds = String(input.branchIds);
       }
     }
+
+    const groupBy = formatGroupBy(input.groupBy);
 
      const spCall = await db
       .request()
@@ -36,9 +38,13 @@ export async function getEmployeesHandler(input: any) {
 
     const result = await db
       .request()
+      .input("PI_START_DATE", input.fromDate || null)
+      .input("PI_END_DATE", input.toDate || null)
       .input("PI_ENTITY_ID", input.entityId ?? 0)
-      .input("PI_BRANCH_ID", branchIds ?? 0)
+      .input("PI_BRANCH_ID", branchIds ?? null)
       .input("PI_CUSTOMER_ID", input.customerId ?? 0)
+      .input("PI_GROUP_BY", groupBy ?? null)
+      .input("PI_PERIOD_TYPE_ID", input.periodTypeId ?? null)
       .execute("PRC_MCP_GET_EMPLOYEES_DATA");
 
 
