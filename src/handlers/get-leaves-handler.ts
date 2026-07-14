@@ -5,7 +5,7 @@ import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 export async function getLeaveHandler(input: any) {
   try {
     const db = getDb();
-    console.log("Leave Tool Called");
+    console.log("Leave Tool Called. Input Parameters:", input);
     let branchIds: string | null = null;
     if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {

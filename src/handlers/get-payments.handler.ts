@@ -1,11 +1,11 @@
-﻿import { getDb } from "../clients/db-client";
+import { getDb } from "../clients/db-client";
 import sql from "mssql";
 import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
 export async function getPaymentHandler(input: any) {
   try {
     const db = getDb();
-    console.log("Payments Tool Called");
+    console.log("Payments Tool Called. Input Parameters:", input);
     let branchIds: string | null = null;
     if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {

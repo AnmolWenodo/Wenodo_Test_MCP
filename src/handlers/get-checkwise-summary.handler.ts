@@ -6,7 +6,7 @@ export async function getCheckWiseSalesSummaryHandler(input: any) {
   try {
     const db = getDb();
 
-    console.log("Check Wise Sales Summary Tool Called");
+    console.log("Check Wise Sales Summary Tool Called. Input Parameters:", input);
 
     // ─────────────────────────────────────────────
     // BRANCH IDS

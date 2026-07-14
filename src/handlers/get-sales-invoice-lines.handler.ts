@@ -5,8 +5,7 @@ import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 export async function getSalesInvoiceLinesHandler(input: any) {
   try {
     const db = getDb();
-    console.log("Sales Lines Tool Called");
-    // console.log("Input Parameters:", input);
+    console.log("Sales Lines Tool Called. Input Parameters:", input);
     let branchIds: string | null = null;
 
     branchIds = Array.isArray(input.branchIds)

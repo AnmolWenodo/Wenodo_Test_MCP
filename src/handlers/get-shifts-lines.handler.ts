@@ -6,7 +6,7 @@ export async function getShiftsLine(input: any) {
   try {
     const db = getDb();
 
-    console.log("Check Wise Sales Line Tool Called");
+    console.log("Shift Lines Tool Called. Input Parameters:", input);
 
     // ─────────────────────────────────────────────
     // BRANCH IDS

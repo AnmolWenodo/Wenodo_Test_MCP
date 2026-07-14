@@ -2,22 +2,10 @@ import sql from "mssql";
 import { getDb } from "../clients/db-client";
 import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 
-export async function getSalesHandler(input: {
-
-  fromDate: string;
-  toDate: string;
-  entityId?: number;
-  branchIds?: number | number[];
-  customerId?: number;
-  groupBy?: string[] | string;
-  Text?: string;
-  UserId?: number;
-  Variables?: Record<string, any>;
-  periodTypeId?: number;
-}) {
+export async function getSalesHandler(input: any) {
   try {
     const db = getDb();
-    console.log("Sales Summary Tool Called");
+    console.log("Sales Summary Tool Called. Input Parameters:", input);
     let branchIds: string | null = null;
     if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {

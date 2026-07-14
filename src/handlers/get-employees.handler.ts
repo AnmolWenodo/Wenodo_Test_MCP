@@ -5,7 +5,7 @@ import { formatVariables, formatGroupBy } from "../helpers/handler-helper";
 export async function getEmployeesHandler(input: any) {
   try {
     const db = getDb();
-    console.log("Employees Tool Called");
+    console.log("Employees Tool Called. Input Parameters:", input);
      let branchIds: string | null = null;
      if (input.branchIds !== undefined && input.branchIds !== null) {
       if (Array.isArray(input.branchIds)) {
